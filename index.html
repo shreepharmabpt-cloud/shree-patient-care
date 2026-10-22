@@ -1,144 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#087f8c">
-  <title>Shree Patient Care</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f2f7f8;
-      color: #203040;
-    }
-
-    header {
-      background: #087f8c;
-      color: white;
-      padding: 24px 18px;
-      border-radius: 0 0 20px 20px;
-    }
-
-    header h1 {
-      margin: 0 0 8px;
-      font-size: 25px;
-    }
-
-    header p {
-      margin: 0;
-      font-size: 14px;
-    }
-
-    main {
-      padding: 18px;
-      max-width: 600px;
-      margin: auto;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      margin-bottom: 16px;
-      border-radius: 14px;
-      box-shadow: 0 3px 12px #0000000d;
-    }
-
-    .card h2 {
-      margin-top: 0;
-      font-size: 19px;
-    }
-
-    .button {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      border: 0;
-      border-radius: 9px;
-      background: #087f8c;
-      color: white;
-      font-size: 16px;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .secondary {
-      background: #e5f4f5;
-      color: #075d66;
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: #64748b;
-      font-size: 13px;
-    }
-  </style>
-</head>
-
-<body>
-
-  <header>
-    <h1>Shree Patient Care</h1>
-    <p>Patient Management System</p>
-    <p>Shree Pharma And Cosmetics</p>
-  </header>
-
-  <main>
-    <section class="card">
-      <h2>👋 Welcome</h2>
-      <p>Manage patient visits and clinic activities from one place.</p>
-    </section>
-
-    <section class="card">
-      <h2>🩺 Patient Management</h2>
-      <p>Register and manage patient records.</p>
-      <button class="button" onclick="showMessage()">
-        Patient Registration
-      </button>
-      <button class="button secondary" onclick="showMessage()">
-        Search Patients
-      </button>
-    </section>
-
-    <section class="card">
-      <h2>📅 Appointments</h2>
-      <p>Manage patient appointments and visits.</p>
-      <button class="button secondary" onclick="showMessage()">
-        View Appointments
-      </button>
-    </section>
-
-    <section class="card">
-      <h2>📋 Reports</h2>
-      <p>Access patient visit and clinic reports.</p>
-      <button class="button secondary" onclick="showMessage()">
-        View Reports
-      </button>
-    </section>
-  </main>
-
-  <footer>
-    © Shree Pharma And Cosmetics
-    <br>Shree Patient Care
-  </footer>
-
-  <script>
-    function showMessage() {
-      alert(
-        "This feature is under development. " +
-        "Firebase authentication and secure database " +
-        "integration will be added next."
-      );
-    }
-  </script>
-
-</body>
-</html>
+<!doctype html>
+<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b3b78"><title>Shree Patient Care — Mobile Setup</title>
+<style>
+:root{--blue:#0b3b78;--bg:#f2f6fb;--ink:#172b4d;--muted:#60728a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px Arial,sans-serif}header{background:linear-gradient(110deg,#0b3b78,#1264a3);color:white;padding:20px 16px}h1{font-size:22px;margin:0 0 6px}.sub{font-size:13px;opacity:.9}main{max-width:760px;margin:16px auto;padding:0 12px}.card{background:white;border:1px solid #e1e9f2;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px #102c4d0a}h2{font-size:18px;margin:0 0 12px}p,li{line-height:1.5}.warning{background:#fff3cd;border:1px solid #f0d889;border-radius:10px;padding:12px;font-size:13px}label{display:block;margin:12px 0 5px;font-size:13px;color:var(--muted)}input,button{width:100%;padding:12px;border-radius:9px;font:inherit}input{border:1px solid #cbd6e2}button{border:0;background:var(--blue);color:white;font-weight:bold;margin-top:12px}button.secondary{background:#e8f0fa;color:var(--blue);border:1px solid #cbdcf0}.small{font-size:12px;color:var(--muted)}.status{padding:10px;border-radius:8px;background:#eef4fb;margin-top:10px;white-space:pre-wrap;overflow-wrap:anywhere}
+</style></head><body>
+<header><h1>✚ SHREE PATIENT CARE</h1><div class="sub">Shree Pharma And Cosmetics · Diabetes Care Centre</div></header><main>
+<div class="card"><h2>Firebase Setup Helper</h2><p>यह मोबाइल-फ्रेंडली सेटअप पेज है। साझा और सुरक्षित मरीज रिकॉर्ड के लिए इसे HTTPS वेबसाइट पर होस्ट करना और Firebase सेटअप पूरा करना जरूरी है।</p><div class="warning"><b>महत्वपूर्ण:</b> अभी इसमें मरीजों का वास्तविक डेटा दर्ज न करें। यह Firebase से कनेक्ट नहीं है और इसमें लॉगिन/डेटाबेस चालू नहीं है।</div></div>
+<div class="card"><h2>Firebase Web Configuration</h2><p class="small">Firebase Console → Project settings → Your apps → Web app → Config में ये मान मिलेंगे। यहाँ पासवर्ड नहीं भरना है।</p>
+<label>apiKey</label><input id="apiKey" placeholder="AIza..."><label>authDomain</label><input id="authDomain" placeholder="your-project.firebaseapp.com"><label>projectId</label><input id="projectId" placeholder="your-project-id"><label>storageBucket</label><input id="storageBucket" placeholder="your-project.firebasestorage.app"><label>messagingSenderId</label><input id="messagingSenderId" placeholder="123456789"><label>appId</label><input id="appId" placeholder="1:123456789:web:...">
+<button id="make">Generate config snippet</button><div id="result" class="status" hidden></div><button id="copy" class="secondary" hidden>Copy config</button></div>
+<div class="card"><h2>अगले चरण</h2><ol><li>Firebase Authentication में Email/Password enabled रखें।</li><li>Admin role के लिए <code>users/{UID}</code> document में <code>role: "admin"</code> और <code>active: true</code> होना चाहिए।</li><li>ऐप को HTTPS पर deploy करें; केवल HTML file खोलना साझा cloud app के लिए पर्याप्त नहीं है।</li><li>Security rules और roles की जाँच के बाद ही वास्तविक मरीजों का डेटा इस्तेमाल करें।</li></ol><p class="small">Firebase config में apiKey होना सामान्य है, लेकिन वह सुरक्षा का विकल्प नहीं है। सुरक्षा Authentication और Firestore Rules पर निर्भर है। Firebase password या service-account private key साझा न करें।</p></div></main>
+<script>
+const ids=['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'];let snippet='';
+document.getElementById('make').onclick=()=>{const vals=Object.fromEntries(ids.map(id=>[id,document.getElementById(id).value.trim()]));const missing=ids.filter(id=>!vals[id]);const r=document.getElementById('result'),c=document.getElementById('copy');if(missing.length){r.hidden=false;c.hidden=true;r.textContent='कृपया ये फ़ील्ड भरें: '+missing.join(', ');return}snippet='const firebaseConfig = '+JSON.stringify(vals,null,2)+';';r.hidden=false;c.hidden=false;r.textContent=snippet};
+document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(snippet);document.getElementById('copy').textContent='Copied ✓'}catch(e){document.getElementById('result').textContent+='\nClipboard copy उपलब्ध नहीं है। टेक्स्ट को long-press करके Copy करें.'}};
+</script></body></html>
