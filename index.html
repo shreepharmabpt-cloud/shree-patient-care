@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087f8c">
+  <title>Shree Patient Care</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f7f8;
+      color: #203040;
+    }
+
+    header {
+      background: #087f8c;
+      color: white;
+      padding: 24px 18px;
+      border-radius: 0 0 20px 20px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 25px;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    main {
+      padding: 18px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 16px;
+      border-radius: 14px;
+      box-shadow: 0 3px 12px #0000000d;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 19px;
+    }
+
+    .button {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border: 0;
+      border-radius: 9px;
+      background: #087f8c;
+      color: white;
+      font-size: 16px;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .secondary {
+      background: #e5f4f5;
+      color: #075d66;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #64748b;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Shree Patient Care</h1>
+    <p>Patient Management System</p>
+    <p>Shree Pharma And Cosmetics</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>👋 Welcome</h2>
+      <p>Manage patient visits and clinic activities from one place.</p>
+    </section>
+
+    <section class="card">
+      <h2>🩺 Patient Management</h2>
+      <p>Register and manage patient records.</p>
+      <button class="button" onclick="showMessage()">
+        Patient Registration
+      </button>
+      <button class="button secondary" onclick="showMessage()">
+        Search Patients
+      </button>
+    </section>
+
+    <section class="card">
+      <h2>📅 Appointments</h2>
+      <p>Manage patient appointments and visits.</p>
+      <button class="button secondary" onclick="showMessage()">
+        View Appointments
+      </button>
+    </section>
+
+    <section class="card">
+      <h2>📋 Reports</h2>
+      <p>Access patient visit and clinic reports.</p>
+      <button class="button secondary" onclick="showMessage()">
+        View Reports
+      </button>
+    </section>
+  </main>
+
+  <footer>
+    © Shree Pharma And Cosmetics
+    <br>Shree Patient Care
+  </footer>
+
+  <script>
+    function showMessage() {
+      alert(
+        "This feature is under development. " +
+        "Firebase authentication and secure database " +
+        "integration will be added next."
+      );
+    }
+  </script>
+
+</body>
+</html>
