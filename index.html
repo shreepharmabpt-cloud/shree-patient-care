@@ -1,16 +1,198 @@
 <!doctype html>
-<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b3b78"><title>Shree Patient Care — Mobile Setup</title>
-<style>
-:root{--blue:#0b3b78;--bg:#f2f6fb;--ink:#172b4d;--muted:#60728a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px Arial,sans-serif}header{background:linear-gradient(110deg,#0b3b78,#1264a3);color:white;padding:20px 16px}h1{font-size:22px;margin:0 0 6px}.sub{font-size:13px;opacity:.9}main{max-width:760px;margin:16px auto;padding:0 12px}.card{background:white;border:1px solid #e1e9f2;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px #102c4d0a}h2{font-size:18px;margin:0 0 12px}p,li{line-height:1.5}.warning{background:#fff3cd;border:1px solid #f0d889;border-radius:10px;padding:12px;font-size:13px}label{display:block;margin:12px 0 5px;font-size:13px;color:var(--muted)}input,button{width:100%;padding:12px;border-radius:9px;font:inherit}input{border:1px solid #cbd6e2}button{border:0;background:var(--blue);color:white;font-weight:bold;margin-top:12px}button.secondary{background:#e8f0fa;color:var(--blue);border:1px solid #cbdcf0}.small{font-size:12px;color:var(--muted)}.status{padding:10px;border-radius:8px;background:#eef4fb;margin-top:10px;white-space:pre-wrap;overflow-wrap:anywhere}
-</style></head><body>
-<header><h1>✚ SHREE PATIENT CARE</h1><div class="sub">Shree Pharma And Cosmetics · Diabetes Care Centre</div></header><main>
-<div class="card"><h2>Firebase Setup Helper</h2><p>यह मोबाइल-फ्रेंडली सेटअप पेज है। साझा और सुरक्षित मरीज रिकॉर्ड के लिए इसे HTTPS वेबसाइट पर होस्ट करना और Firebase सेटअप पूरा करना जरूरी है।</p><div class="warning"><b>महत्वपूर्ण:</b> अभी इसमें मरीजों का वास्तविक डेटा दर्ज न करें। यह Firebase से कनेक्ट नहीं है और इसमें लॉगिन/डेटाबेस चालू नहीं है।</div></div>
-<div class="card"><h2>Firebase Web Configuration</h2><p class="small">Firebase Console → Project settings → Your apps → Web app → Config में ये मान मिलेंगे। यहाँ पासवर्ड नहीं भरना है।</p>
-<label>apiKey</label><input id="apiKey" placeholder="AIza..."><label>authDomain</label><input id="authDomain" placeholder="your-project.firebaseapp.com"><label>projectId</label><input id="projectId" placeholder="your-project-id"><label>storageBucket</label><input id="storageBucket" placeholder="your-project.firebasestorage.app"><label>messagingSenderId</label><input id="messagingSenderId" placeholder="123456789"><label>appId</label><input id="appId" placeholder="1:123456789:web:...">
-<button id="make">Generate config snippet</button><div id="result" class="status" hidden></div><button id="copy" class="secondary" hidden>Copy config</button></div>
-<div class="card"><h2>अगले चरण</h2><ol><li>Firebase Authentication में Email/Password enabled रखें।</li><li>Admin role के लिए <code>users/{UID}</code> document में <code>role: "admin"</code> और <code>active: true</code> होना चाहिए।</li><li>ऐप को HTTPS पर deploy करें; केवल HTML file खोलना साझा cloud app के लिए पर्याप्त नहीं है।</li><li>Security rules और roles की जाँच के बाद ही वास्तविक मरीजों का डेटा इस्तेमाल करें।</li></ol><p class="small">Firebase config में apiKey होना सामान्य है, लेकिन वह सुरक्षा का विकल्प नहीं है। सुरक्षा Authentication और Firestore Rules पर निर्भर है। Firebase password या service-account private key साझा न करें।</p></div></main>
-<script>
-const ids=['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'];let snippet='';
-document.getElementById('make').onclick=()=>{const vals=Object.fromEntries(ids.map(id=>[id,document.getElementById(id).value.trim()]));const missing=ids.filter(id=>!vals[id]);const r=document.getElementById('result'),c=document.getElementById('copy');if(missing.length){r.hidden=false;c.hidden=true;r.textContent='कृपया ये फ़ील्ड भरें: '+missing.join(', ');return}snippet='const firebaseConfig = '+JSON.stringify(vals,null,2)+';';r.hidden=false;c.hidden=false;r.textContent=snippet};
-document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(snippet);document.getElementById('copy').textContent='Copied ✓'}catch(e){document.getElementById('result').textContent+='\nClipboard copy उपलब्ध नहीं है। टेक्स्ट को long-press करके Copy करें.'}};
-</script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#087f8c">
+  <title>Shree Patient Care — Login</title>
+  <style>
+    :root{--blue:#087f8c;--bg:#f2f7f8;--ink:#203040;--muted:#60717d;--white:#fff;--line:#dce7ea;--danger:#b42318;--good:#087443}
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    header{background:var(--blue);color:white;padding:24px 18px;border-radius:0 0 22px 22px}
+    header h1{margin:0 0 7px;font-size:26px} header p{margin:0;opacity:.92}
+    main{max-width:720px;margin:22px auto;padding:0 14px 36px}
+    .card{background:white;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 5px 20px #193e4a12}
+    h2{margin:0 0 14px;font-size:21px} label{display:block;font-size:14px;font-weight:700;margin:12px 0 6px}
+    input,select{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;font-size:16px;background:white;color:var(--ink)}
+    button{border:0;border-radius:10px;padding:13px 16px;font-size:16px;font-weight:700;cursor:pointer;background:var(--blue);color:white}
+    button.secondary{background:#e4f4f5;color:#155b62} button.danger{background:#a52a2a}
+    .full{width:100%;margin-top:14px}.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1}
+    .muted{color:var(--muted);font-size:14px;line-height:1.5}.status{padding:12px;border-radius:10px;margin:12px 0;display:none;white-space:pre-wrap}
+    .status.error{display:block;background:#fff0ef;color:var(--danger)} .status.ok{display:block;background:#e9f8ef;color:var(--good)}
+    .hidden{display:none!important}.badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#e4f4f5;color:#155b62;font-size:13px;font-weight:bold}
+    .topline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    ul{padding-left:20px;line-height:1.7} footer{text-align:center;color:var(--muted);font-size:12px;padding:16px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>✚ Shree Patient Care</h1>
+  <p>Patient Management System · Shree Pharma And Cosmetics</p>
+</header>
+<main>
+  <div id="notice" class="status"></div>
+
+  <section id="loginCard" class="card">
+    <h2>Secure Login</h2>
+    <p class="muted">Sign in using an account created by the Admin. Public sign-up is not available.</p>
+    <form id="loginForm">
+      <label for="email">Email address</label><input id="email" type="email" autocomplete="username" required>
+      <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
+      <button class="full" type="submit">Login</button>
+    </form>
+  </section>
+
+  <section id="dashboard" class="card hidden">
+    <div class="topline"><div><h2 id="welcome">Dashboard</h2><span id="roleBadge" class="badge"></span></div><button id="logout" class="secondary" type="button">Logout</button></div>
+    <p id="userEmail" class="muted"></p>
+    <div id="adminPanel" class="hidden">
+      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+      <h2>Create Doctor / Staff Account</h2>
+      <p class="muted">Only Admin can create accounts from this screen. Use a temporary password and ask the user to change it after their first login.</p>
+      <form id="createForm">
+        <label for="newName">Full name</label><input id="newName" required maxlength="100">
+        <label for="newEmail">Email address</label><input id="newEmail" type="email" required autocomplete="off">
+        <label for="newPassword">Temporary password (at least 6 characters)</label><input id="newPassword" type="password" minlength="6" required autocomplete="new-password">
+        <label for="newRole">Role</label>
+        <select id="newRole"><option value="doctor">Doctor</option><option value="staff">Staff</option></select>
+        <button class="full" type="submit">Create Account</button>
+      </form>
+      <p class="muted">This uses a second Firebase app instance so creating a new account does not sign the Admin out.</p>
+    </div>
+    <div id="roleInfo"></div>
+  </section>
+
+  <section class="card">
+    <h2>Access & privacy</h2>
+    <ul class="muted">
+      <li>Only users with an active Firestore role record can open the dashboard.</li>
+      <li>Do not store patient medical details in this starter login page.</li>
+      <li>Before using real patient data, configure Firestore Security Rules and test them.</li>
+    </ul>
+  </section>
+</main>
+<footer>Shree Patient Care · Keep patient information confidential</footer>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+  // IMPORTANT: Replace every placeholder below with the values from Firebase Console
+  // > Project settings > Your apps > Firebase SDK snippet > Config.
+  const firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+    messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const $ = id => document.getElementById(id);
+  const showNotice = (message, type="error") => {
+    $("notice").textContent = message;
+    $("notice").className = "status " + type;
+  };
+  const hideNotice = () => { $("notice").className = "status"; $("notice").textContent = ""; };
+  const friendlyError = e => {
+    const map = {
+      "auth/invalid-credential":"Email or password is incorrect.",
+      "auth/user-not-found":"No account exists for this email.",
+      "auth/too-many-requests":"Too many attempts. Please wait and try again.",
+      "auth/email-already-in-use":"An account already uses this email.",
+      "auth/weak-password":"Use a password with at least 6 characters.",
+      "permission-denied":"Firestore denied this action. Check your Security Rules."
+    };
+    return map[e.code] || (e.message || "Something went wrong.");
+  };
+
+  $("loginForm").addEventListener("submit", async e => {
+    e.preventDefault(); hideNotice();
+    try {
+      await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
+    } catch (err) { showNotice(friendlyError(err)); }
+  });
+
+  $("logout").addEventListener("click", async () => {
+    await signOut(auth);
+    showNotice("You have been logged out.", "ok");
+  });
+
+  onAuthStateChanged(auth, async user => {
+    hideNotice();
+    $("loginCard").classList.toggle("hidden", !!user);
+    $("dashboard").classList.add("hidden");
+    $("adminPanel").classList.add("hidden");
+    if (!user) return;
+    try {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (!snap.exists()) {
+        await signOut(auth);
+        $("loginCard").classList.remove("hidden");
+        showNotice("This account has no assigned role. Ask the Admin to activate it.");
+        return;
+      }
+      const profile = snap.data();
+      if (profile.active !== true || !["admin","doctor","staff"].includes(profile.role)) {
+        await signOut(auth);
+        $("loginCard").classList.remove("hidden");
+        showNotice("This account is inactive or its role is invalid. Contact the Admin.");
+        return;
+      }
+      $("dashboard").classList.remove("hidden");
+      $("welcome").textContent = "Welcome" + (profile.name ? ", " + profile.name : "");
+      $("roleBadge").textContent = profile.role.toUpperCase();
+      $("userEmail").textContent = user.email || "";
+      $("roleInfo").innerHTML = "";
+      const p = document.createElement("p");
+      p.className = "muted";
+      p.textContent = profile.role === "admin"
+        ? "Admin access: manage staff accounts and oversee the system."
+        : profile.role === "doctor"
+          ? "Doctor access: use only patient and appointment features authorized for your role."
+          : "Staff access: use only registration and workflow features authorized for your role.";
+      $("roleInfo").appendChild(p);
+      if (profile.role === "admin") $("adminPanel").classList.remove("hidden");
+    } catch (err) {
+      await signOut(auth);
+      $("loginCard").classList.remove("hidden");
+      showNotice("Could not verify your role. Check Firestore setup and Security Rules. " + friendlyError(err));
+    }
+  });
+
+  $("createForm").addEventListener("submit", async e => {
+    e.preventDefault(); hideNotice();
+    const currentUser = auth.currentUser;
+    if (!currentUser) return showNotice("Please log in again.");
+    try {
+      const adminSnap = await getDoc(doc(db, "users", currentUser.uid));
+      if (!adminSnap.exists() || adminSnap.data().role !== "admin" || adminSnap.data().active !== true) {
+        return showNotice("Only an active Admin can create accounts.");
+      }
+      const name = $("newName").value.trim();
+      const email = $("newEmail").value.trim().toLowerCase();
+      const password = $("newPassword").value;
+      const role = $("newRole").value;
+      // A secondary app keeps the current Admin session signed in.
+      const secondaryName = "accountCreator";
+      const secondaryApp = getApps().find(a => a.name === secondaryName)
+        || initializeApp(firebaseConfig, secondaryName);
+      const secondaryAuth = getAuth(secondaryApp);
+      const credential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+      await setDoc(doc(db, "users", credential.user.uid), {
+        name, email, role, active: true, createdAt: serverTimestamp(), createdBy: currentUser.uid
+      });
+      await signOut(secondaryAuth);
+      $("createForm").reset();
+      showNotice(`${role.toUpperCase()} account created for ${email}. Share the temporary password securely.`, "ok");
+    } catch (err) {
+      showNotice("Account creation failed: " + friendlyError(err) + " If Auth user was created but the role record failed, remove that user in Firebase Authentication and try again after fixing Firestore Rules.");
+    }
+  });
+</script>
+</body>
+</html>
