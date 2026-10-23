@@ -59,6 +59,21 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:22px 16px}
  #historyProfile .small{font-size:13px}
 }
 
+
+@media print {
+  body { background:#fff !important; color:#111 !important; }
+  header, .nav, button, #loginCard, #patientsPanel, #readingPanel, #medicinePanel, #appointmentsPanel,
+  #historySearch, label[for="historySearch"], label[for="historyPatient"], #historyPatient, #loadHistory,
+  #historyNotice, #historyDocuments form, #refreshDocuments, #documentNotice, #historyChartType,
+  #historyChartWrap p, footer, .notice { display:none !important; }
+  main { max-width:none !important; margin:0 !important; padding:0 !important; }
+  .card, .item { box-shadow:none !important; border:1px solid #ccc !important; break-inside:avoid; }
+  #dashboard, #historyPanel { display:block !important; }
+  #historyPanel { border:0 !important; padding:0 !important; }
+  #historyProfile, #historyReadings, #historyMedicines, #historyAppointments, #historyDocuments, #historyChartWrap { display:block !important; }
+  #historyChart { max-height:260px !important; }
+}
+
 </style></head><body>
 <header><h1>✚ Shree Patient Care</h1><p>Patient Management System · Shree Pharma And Cosmetics</p></header><main>
 <div class="notice"><b>Important:</b> Test with dummy data first. Only use real patient information after Security Rules and access controls have been reviewed and tested.</div>
@@ -73,8 +88,9 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:22px 16px}
 <section id="patientsPanel" class="card panel"><h2>1. Patient Registration</h2><form id="patientForm"><div class="row"><div><label>Full name *</label><input id="pName" maxlength="100" required></div><div><label>Mobile number *</label><input id="pPhone" inputmode="tel" maxlength="20" required></div><div><label>Date of birth</label><input id="pDob" type="date"></div><div><label>Gender</label><select id="pGender"><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option><option>Prefer not to say</option></select></div><div><label>Address</label><textarea id="pAddress"></textarea></div><div><label>Diabetes status/type</label><select id="pDiabetes"><option value="">Not recorded</option><option>Type 1</option><option>Type 2</option><option>Gestational</option><option>Prediabetes</option><option>Under evaluation</option><option>No known diabetes</option></select></div></div><label>Relevant history / notes</label><textarea id="pHistory"></textarea><button>Save Patient</button></form><div id="patientNotice" class="status"></div><h3>Patient List & Search</h3><label for="patientSearch">Search by patient name, Patient ID, or mobile number</label><input id="patientSearch" type="search" placeholder="Enter name, SPC ID, or mobile number"><div class="nav"><button id="refreshPatients" class="secondary" type="button">Refresh list</button><button id="exportPatients" class="secondary" type="button">Export Patients CSV</button></div><div id="patientList"></div></section>
 <section id="readingPanel" class="card panel" hidden><h2>2. Diabetes Readings</h2><p class="small">Record measurements only; this form does not diagnose or recommend treatment.</p><form id="readingForm"><label>Patient *</label><select id="readingPatient" required><option value="">Select patient</option></select><div class="row"><div><label>Reading type *</label><select id="rType" required><option value="">Select</option><option>FBS</option><option>PPBS</option><option>RBS</option><option>HbA1c</option><option>Blood Pressure</option><option>Weight</option></select></div><div><label>Value with units *</label><input id="rValue" placeholder="e.g. 126 mg/dL" required></div><div><label>Date/time *</label><input id="rDate" type="datetime-local" required></div></div><label>Notes</label><textarea id="rNotes"></textarea><button>Save Reading</button></form><div id="readingNotice" class="status"></div></section>
 <section id="medicinePanel" class="card panel" hidden><h2>3. Medicine Records</h2><form id="medicineForm"><label>Patient *</label><select id="mPatient" required><option value="">Select patient</option></select><div class="row"><div><label>Medicine name *</label><input id="mName" maxlength="150" required></div><div><label>Prescribed dose</label><input id="mDose" maxlength="150" placeholder="As prescribed"></div><div><label>Start date</label><input id="mStart" type="date"></div><div><label>End date</label><input id="mEnd" type="date"></div></div><label>Prescriber / instructions</label><textarea id="mNotes" maxlength="2000"></textarea><button>Save Medicine Record</button></form><div id="medicineNotice" class="status"></div><h3>Recent medicine records</h3><div class="nav"><button id="refreshMedicines" class="secondary" type="button">Refresh records</button><button id="exportMedicines" class="secondary" type="button">Export Medicines CSV</button></div><div id="medicineList"></div></section>
-<section id="appointmentsPanel" class="card panel" hidden><h2>4. Appointments & Follow-ups</h2><form id="appointmentForm"><label>Patient *</label><select id="aPatient" required><option value="">Select patient</option></select><div class="row"><div><label>Appointment date/time *</label><input id="aDate" type="datetime-local" required></div><div><label>Doctor / clinician</label><input id="aDoctor" maxlength="150"></div></div><label>Reason / follow-up notes</label><textarea id="aReason" maxlength="2000"></textarea><button>Save Appointment</button></form><div id="appointmentNotice" class="status"></div><h3>Recent appointments</h3><div class="nav"><button id="refreshAppointments" class="secondary" type="button">Refresh appointments</button><button id="exportAppointments" class="secondary" type="button">Export Appointments CSV</button></div><div id="appointmentList"></div></section>
-<section id="historyPanel" class="card panel" hidden><h2>5. Complete Patient History</h2><p class="small">Select a patient to review their profile, diabetes readings, medicine records, and appointments.</p><label for="historySearch">Search patient by name, Patient ID, or mobile number</label><input id="historySearch" type="search" placeholder="Type name, SPC ID, Firestore ID, or mobile number"><label for="historyPatient">Select patient</label><select id="historyPatient"><option value="">Select patient</option></select><button id="loadHistory" type="button" style="margin-top:12px">Load Patient History</button><div id="historyNotice" class="status"></div><section id="historyProfile" class="item" hidden></section><section id="historyReadings" class="card" hidden><h3>🩸 Diabetes Readings</h3><div id="historyReadingsList"></div></section><section id="historyMedicines" class="card" hidden><h3>💊 Medicine Records</h3><div id="historyMedicinesList"></div></section><section id="historyAppointments" class="card" hidden><h3>📅 Appointments & Follow-ups</h3><div id="historyAppointmentsList"></div></section><section id="historyDocuments" class="card" hidden>
+<section id="appointmentsPanel" class="card panel" hidden><h2>4. Appointments & Follow-ups</h2><form id="appointmentForm"><label>Patient *</label><select id="aPatient" required><option value="">Select patient</option></select><div class="row"><div><label>Appointment date/time *</label><input id="aDate" type="datetime-local" required></div><div><label>Doctor / clinician</label><input id="aDoctor" maxlength="150"></div></div><label>Reason / follow-up notes</label><textarea id="aReason" maxlength="2000"></textarea><button>Save Appointment</button></form><div id="appointmentNotice" class="status"></div><div class="notice"><b>Appointment reminders:</b> Enable browser notifications. Reminders work while this app is open on this device.</div><button id="enableReminders" type="button" class="secondary">🔔 Enable Appointment Reminders</button><div id="reminderNotice" class="status"></div><h3>Recent appointments</h3><div class="nav"><button id="refreshAppointments" class="secondary" type="button">Refresh appointments</button><button id="exportAppointments" class="secondary" type="button">Export Appointments CSV</button></div><div id="appointmentList"></div></section>
+<section id="historyPanel" class="card panel" hidden><h2>5. Complete Patient History</h2><p class="small">Select a patient to review their profile, diabetes readings, medicine records, and appointments.</p><label for="historySearch">Search patient by name, Patient ID, or mobile number</label><input id="historySearch" type="search" placeholder="Type name, SPC ID, Firestore ID, or mobile number"><label for="historyPatient">Select patient</label><select id="historyPatient"><option value="">Select patient</option></select><button id="loadHistory" type="button" style="margin-top:12px">Load Patient History</button>
+  <div class="nav"><button id="printHistory" type="button" class="secondary">🖨️ Print / Save PDF</button></div><div id="historyNotice" class="status"></div><section id="historyProfile" class="item" hidden></section><section id="historyReadings" class="card" hidden><h3>🩸 Diabetes Readings</h3><div id="historyReadingsList"></div></section><section id="historyMedicines" class="card" hidden><h3>💊 Medicine Records</h3><div id="historyMedicinesList"></div></section><section id="historyAppointments" class="card" hidden><h3>📅 Appointments & Follow-ups</h3><div id="historyAppointmentsList"></div></section><section id="historyDocuments" class="card" hidden>
 <h3>📄 Prescriptions & Lab Reports</h3><div class="notice">LOCAL DEVICE STORAGE: documents are kept in this browser on this device only. They are not synced to other phones or computers. Clearing browser data, uninstalling the browser, or losing the device may permanently delete them. Download a backup and keep the device locked.</div>
 <p class="small">Files are saved only in this browser on this device (not in the cloud). Use PDF/JPG/PNG, maximum 10 MB.</p>
 <form id="documentForm">
@@ -308,4 +324,53 @@ function csvCell(value){let s=value==null?"":(typeof value==="object"&&typeof va
 function downloadCSV(filename,rows){if(!rows.length){msg("exportNotice","No records available to export.","info");return}const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];const csv=[keys.map(csvCell).join(","),...rows.map(r=>keys.map(k=>csvCell(r[k])).join(","))].join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);msg("exportNotice",filename+" downloaded.","ok")}
 async function exportCollection(name,filename){clear("exportNotice");if(!auth.currentUser||!profile)return msg("exportNotice","Please log in first.");try{const snap=await getDocs(collection(db,name));const rows=snap.docs.map(d=>({documentId:d.id,...d.data()}));downloadCSV(filename,rows)}catch(e){msg("exportNotice","Export failed: "+friendly(e))}}
 $("exportPatients").onclick=()=>exportCollection("patients","shree-patient-care-patients.csv");$("exportReadings").onclick=()=>exportCollection("readings","shree-patient-care-readings.csv");$("exportMedicines").onclick=()=>exportCollection("medicines","shree-patient-care-medicines.csv");$("exportAppointments").onclick=()=>exportCollection("appointments","shree-patient-care-appointments.csv");
+
+// Print the selected patient's currently loaded history; browser print dialog can save as PDF.
+$("printHistory").onclick=()=>{
+ if(!$("historyPatient").value)return msg("historyNotice","Select a patient and load their history before printing.");
+ if($("historyProfile").hidden)return msg("historyNotice","Please load Patient History first.");
+ window.print();
+};
+
+// Appointment reminders: browser notifications only work with permission and while this app remains open.
+let reminderEnabled=false;
+let reminderCheckInProgress=false;
+$("enableReminders").onclick=async()=>{
+ const out=$("reminderNotice");
+ if(!("Notification" in window)){msg("reminderNotice","This browser does not support notifications. Please use your phone's Calendar app for reminders.");return}
+ try{
+  const permission=Notification.permission==="granted"?"granted":await Notification.requestPermission();
+  if(permission!=="granted"){msg("reminderNotice","Notifications were not allowed. Enable notifications in your browser/site settings.","err");return}
+  reminderEnabled=true;
+  msg("reminderNotice","Appointment reminders enabled on this device while the app is open.","ok");
+  await checkUpcomingAppointments();
+ }catch(e){msg("reminderNotice","Could not enable notifications: "+(e.message||e));}
+};
+async function checkUpcomingAppointments(){
+ if(!reminderEnabled||reminderCheckInProgress||!auth.currentUser||!profile)return;
+ reminderCheckInProgress=true;
+ try{
+  const snap=await getDocs(query(collection(db,"appointments"),limit(300)));
+  const now=Date.now(),windowMs=15*60*1000;
+  const notifiedKey="shreePatientCareNotifiedAppointments";
+  let sent={};try{sent=JSON.parse(localStorage.getItem(notifiedKey)||"{}")}catch(e){}
+  for(const s of snap.docs){
+   const d=s.data(),dateText=String(d.appointmentDate||"");
+   const apptTime=new Date(dateText).getTime();
+   if(!d.patientId||!Number.isFinite(apptTime)||apptTime<now||apptTime-now>windowMs)continue;
+   if(sent[s.id])continue;
+   const patient=patients.find(p=>p.id===d.patientId);
+   const name=patient?.name||"Patient";
+   new Notification("Shree Patient Care — Appointment",{
+    body:name+" · "+new Date(apptTime).toLocaleString()+(d.doctor?" · "+d.doctor:""),
+    tag:"shree-appointment-"+s.id
+   });
+   sent[s.id]=Date.now();
+  }
+  localStorage.setItem(notifiedKey,JSON.stringify(sent));
+ }catch(e){console.warn("Appointment reminder check failed",e)}
+ finally{reminderCheckInProgress=false}
+}
+setInterval(()=>{checkUpcomingAppointments()},60000);
+
 </script></body></html>
