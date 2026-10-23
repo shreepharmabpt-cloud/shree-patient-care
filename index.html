@@ -1,199 +1,35 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#087f8c">
-  <title>Shree Patient Care — Login</title>
-  <style>
-    :root{--blue:#087f8c;--bg:#f2f7f8;--ink:#203040;--muted:#60717d;--white:#fff;--line:#dce7ea;--danger:#b42318;--good:#087443}
-    *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
-    header{background:var(--blue);color:white;padding:24px 18px;border-radius:0 0 22px 22px}
-    header h1{margin:0 0 7px;font-size:26px} header p{margin:0;opacity:.92}
-    main{max-width:720px;margin:22px auto;padding:0 14px 36px}
-    .card{background:white;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 5px 20px #193e4a12}
-    h2{margin:0 0 14px;font-size:21px} label{display:block;font-size:14px;font-weight:700;margin:12px 0 6px}
-    input,select{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;font-size:16px;background:white;color:var(--ink)}
-    button{border:0;border-radius:10px;padding:13px 16px;font-size:16px;font-weight:700;cursor:pointer;background:var(--blue);color:white}
-    button.secondary{background:#e4f4f5;color:#155b62} button.danger{background:#a52a2a}
-    .full{width:100%;margin-top:14px}.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1}
-    .muted{color:var(--muted);font-size:14px;line-height:1.5}.status{padding:12px;border-radius:10px;margin:12px 0;display:none;white-space:pre-wrap}
-    .status.error{display:block;background:#fff0ef;color:var(--danger)} .status.ok{display:block;background:#e9f8ef;color:var(--good)}
-    .hidden{display:none!important}.badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#e4f4f5;color:#155b62;font-size:13px;font-weight:bold}
-    .topline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    ul{padding-left:20px;line-height:1.7} footer{text-align:center;color:var(--muted);font-size:12px;padding:16px}
-  </style>
-</head>
-<body>
-<header>
-  <h1>✚ Shree Patient Care</h1>
-  <p>Patient Management System · Shree Pharma And Cosmetics</p>
-</header>
-<main>
-  <div id="notice" class="status"></div>
-
-  <section id="loginCard" class="card">
-    <h2>Secure Login</h2>
-    <p class="muted">Sign in using an account created by the Admin. Public sign-up is not available.</p>
-    <form id="loginForm">
-      <label for="email">Email address</label><input id="email" type="email" autocomplete="username" required>
-      <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
-      <button class="full" type="submit">Login</button>
-    </form>
-  </section>
-
-  <section id="dashboard" class="card hidden">
-    <div class="topline"><div><h2 id="welcome">Dashboard</h2><span id="roleBadge" class="badge"></span></div><button id="logout" class="secondary" type="button">Logout</button></div>
-    <p id="userEmail" class="muted"></p>
-    <div id="adminPanel" class="hidden">
-      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
-      <h2>Create Doctor / Staff Account</h2>
-      <p class="muted">Only Admin can create accounts from this screen. Use a temporary password and ask the user to change it after their first login.</p>
-      <form id="createForm">
-        <label for="newName">Full name</label><input id="newName" required maxlength="100">
-        <label for="newEmail">Email address</label><input id="newEmail" type="email" required autocomplete="off">
-        <label for="newPassword">Temporary password (at least 6 characters)</label><input id="newPassword" type="password" minlength="6" required autocomplete="new-password">
-        <label for="newRole">Role</label>
-        <select id="newRole"><option value="doctor">Doctor</option><option value="staff">Staff</option></select>
-        <button class="full" type="submit">Create Account</button>
-      </form>
-      <p class="muted">This uses a second Firebase app instance so creating a new account does not sign the Admin out.</p>
-    </div>
-    <div id="roleInfo"></div>
-  </section>
-
-  <section class="card">
-    <h2>Access & privacy</h2>
-    <ul class="muted">
-      <li>Only users with an active Firestore role record can open the dashboard.</li>
-      <li>Do not store patient medical details in this starter login page.</li>
-      <li>Before using real patient data, configure Firestore Security Rules and test them.</li>
-    </ul>
-  </section>
-</main>
-<footer>Shree Patient Care · Keep patient information confidential</footer>
-
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#087f8c"><title>Shree Patient Care</title>
+<style>
+:root{--t:#087f8c;--ink:#243341;--muted:#65747c;--line:#d9e5e5}*{box-sizing:border-box}body{margin:0;background:#f1f7f7;font-family:system-ui,Arial,sans-serif;color:var(--ink)}header{background:var(--t);color:#fff;padding:22px 18px 26px;border-radius:0 0 26px 26px}h1{font-size:25px;margin:0 0 5px}header p{margin:0}main{max-width:900px;margin:18px auto;padding:0 14px 40px}.card{background:white;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 4px 18px #153b420b}h2{font-size:21px;margin:0 0 14px}label{display:block;font-weight:650;margin:12px 0 6px}input,select,textarea{width:100%;font:inherit;padding:12px;border:1px solid var(--line);border-radius:11px;background:white}textarea{min-height:75px}button{font:inherit;font-weight:650;border:0;border-radius:11px;padding:12px 16px;background:var(--t);color:white;cursor:pointer}.secondary{background:#e3f3f3;color:#08656d}.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hidden,[hidden]{display:none!important}.notice{padding:12px;border-radius:12px;background:#fff4df;color:#754b00;margin:12px 0;line-height:1.45}.status{padding:11px;border-radius:11px;margin:10px 0;display:none;overflow-wrap:anywhere}.status.ok{display:block;background:#e7f7ed;color:#176b46}.status.err{display:block;background:#ffeded;color:#a52b2b}.status.info{display:block;background:#eaf5ff;color:#164f7b}.small{font-size:13px;color:var(--muted);line-height:1.5}.nav{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.nav button{flex:1;min-width:115px}.item{border:1px solid var(--line);padding:12px;border-radius:11px;margin:8px 0;overflow-wrap:anywhere}.pill{display:inline-block;background:#e3f3f3;color:#08656d;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}@media(max-width:580px){.row{grid-template-columns:1fr}h1{font-size:23px}}
+</style></head><body>
+<header><h1>✚ Shree Patient Care</h1><p>Patient Management System · Shree Pharma And Cosmetics</p></header><main>
+<div class="notice"><b>Important:</b> Starter version. Do not enter real patient data until Firestore Security Rules are reviewed and tested. Medicine and appointment forms below are preview-only and do not save.</div>
+<section id="loginCard" class="card"><h2>Login</h2><p class="small">Use an existing Firebase account with an active role record.</p><form id="loginForm"><label>Email</label><input id="email" type="email" autocomplete="username" required><label>Password</label><input id="password" type="password" autocomplete="current-password" required><button style="width:100%;margin-top:14px">Login</button></form><div id="loginNotice" class="status"></div></section>
+<section id="dashboard" class="hidden"><div class="card"><div class="top"><div><h2 id="welcome">Welcome</h2><span id="roleBadge" class="pill"></span><p id="userEmail" class="small"></p></div><button id="logout" class="secondary" type="button">Logout</button></div><p id="roleInfo" class="small"></p></div>
+<div class="nav"><button data-panel="patientsPanel">Patients</button><button data-panel="readingPanel">Diabetes Readings</button><button data-panel="medicinePanel">Medicines</button><button data-panel="appointmentsPanel">Appointments</button></div>
+<section id="patientsPanel" class="card panel"><h2>1. Patient Registration</h2><form id="patientForm"><div class="row"><div><label>Full name *</label><input id="pName" maxlength="100" required></div><div><label>Mobile number *</label><input id="pPhone" inputmode="tel" maxlength="20" required></div><div><label>Date of birth</label><input id="pDob" type="date"></div><div><label>Gender</label><select id="pGender"><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option><option>Prefer not to say</option></select></div><div><label>Address</label><textarea id="pAddress"></textarea></div><div><label>Diabetes status/type</label><select id="pDiabetes"><option value="">Not recorded</option><option>Type 1</option><option>Type 2</option><option>Gestational</option><option>Prediabetes</option><option>Under evaluation</option><option>No known diabetes</option></select></div></div><label>Relevant history / notes</label><textarea id="pHistory"></textarea><button>Save Patient</button></form><div id="patientNotice" class="status"></div><h3>Patient List</h3><button id="refreshPatients" class="secondary" type="button">Refresh list</button><div id="patientList"></div></section>
+<section id="readingPanel" class="card panel" hidden><h2>2. Diabetes Readings</h2><p class="small">Record measurements only; this form does not diagnose or recommend treatment.</p><form id="readingForm"><label>Patient *</label><select id="readingPatient" required><option value="">Select patient</option></select><div class="row"><div><label>Reading type *</label><select id="rType" required><option value="">Select</option><option>FBS</option><option>PPBS</option><option>RBS</option><option>HbA1c</option><option>Blood Pressure</option><option>Weight</option></select></div><div><label>Value with units *</label><input id="rValue" placeholder="e.g. 126 mg/dL" required></div><div><label>Date/time *</label><input id="rDate" type="datetime-local" required></div></div><label>Notes</label><textarea id="rNotes"></textarea><button>Save Reading</button></form><div id="readingNotice" class="status"></div><p class="small">Your current Firestore rules must explicitly allow the patientId field before this will save.</p></section>
+<section id="medicinePanel" class="card panel" hidden><h2>3. Medicine Records</h2><div class="notice">Preview only; no data is saved.</div><form id="medicineForm"><label>Patient</label><select id="mPatient"><option value="">Select patient</option></select><div class="row"><div><label>Medicine name</label><input id="mName"></div><div><label>Prescribed dose</label><input id="mDose" placeholder="As prescribed"></div><div><label>Start date</label><input id="mStart" type="date"></div><div><label>End date</label><input id="mEnd" type="date"></div></div><label>Prescriber / instructions</label><textarea id="mNotes"></textarea><button id="medicineDemo" class="secondary" type="button">Preview (not saved)</button></form><div id="medicineNotice" class="status"></div></section>
+<section id="appointmentsPanel" class="card panel" hidden><h2>4. Appointments & Follow-ups</h2><div class="notice">Preview only; no data is saved.</div><form id="appointmentForm"><label>Patient</label><select id="aPatient"><option value="">Select patient</option></select><div class="row"><div><label>Appointment date/time</label><input id="aDate" type="datetime-local"></div><div><label>Doctor / clinician</label><input id="aDoctor"></div></div><label>Reason / follow-up notes</label><textarea id="aReason"></textarea><button id="appointmentDemo" class="secondary" type="button">Preview (not saved)</button></form><div id="appointmentNotice" class="status"></div></section>
+</section></main><footer>Shree Patient Care · Keep patient information confidential</footer>
 <script type="module">
-  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-  // IMPORTANT: Replace every placeholder below with the values from Firebase Console
-  // > Project settings > Your apps > Firebase SDK snippet > Config.
-  const firebaseConfig = {
-  apiKey: "AIzaSyCdJMcd1p_B_TD0lyAR1ZVvWpfUgn2FN50",
-  authDomain: "shree-patient-care.firebaseapp.com",
-  projectId: "shree-patient-care",
-  storageBucket: "shree-patient-care.firebasestorage.app",
-  messagingSenderId: "546618091366",
-  appId: "1:546618091366:web:1de449aef618e3e0e10aa7",
-  measurementId: "G-LKW9ECKLXN"
-};
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const $ = id => document.getElementById(id);
-  const showNotice = (message, type="error") => {
-    $("notice").textContent = message;
-    $("notice").className = "status " + type;
-  };
-  const hideNotice = () => { $("notice").className = "status"; $("notice").textContent = ""; };
-  const friendlyError = e => {
-    const map = {
-      "auth/invalid-credential":"Email or password is incorrect.",
-      "auth/user-not-found":"No account exists for this email.",
-      "auth/too-many-requests":"Too many attempts. Please wait and try again.",
-      "auth/email-already-in-use":"An account already uses this email.",
-      "auth/weak-password":"Use a password with at least 6 characters.",
-      "permission-denied":"Firestore denied this action. Check your Security Rules."
-    };
-    return map[e.code] || (e.message || "Something went wrong.");
-  };
-
-  $("loginForm").addEventListener("submit", async e => {
-    e.preventDefault(); hideNotice();
-    try {
-      await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
-    } catch (err) { showNotice(friendlyError(err)); }
-  });
-
-  $("logout").addEventListener("click", async () => {
-    await signOut(auth);
-    showNotice("You have been logged out.", "ok");
-  });
-
-  onAuthStateChanged(auth, async user => {
-    hideNotice();
-    $("loginCard").classList.toggle("hidden", !!user);
-    $("dashboard").classList.add("hidden");
-    $("adminPanel").classList.add("hidden");
-    if (!user) return;
-    try {
-      const snap = await getDoc(doc(db, "users", user.uid));
-      if (!snap.exists()) {
-        await signOut(auth);
-        $("loginCard").classList.remove("hidden");
-        showNotice("This account has no assigned role. Ask the Admin to activate it.");
-        return;
-      }
-      const profile = snap.data();
-      if (profile.active !== true || !["admin","doctor","staff"].includes(profile.role)) {
-        await signOut(auth);
-        $("loginCard").classList.remove("hidden");
-        showNotice("This account is inactive or its role is invalid. Contact the Admin.");
-        return;
-      }
-      $("dashboard").classList.remove("hidden");
-      $("welcome").textContent = "Welcome" + (profile.name ? ", " + profile.name : "");
-      $("roleBadge").textContent = profile.role.toUpperCase();
-      $("userEmail").textContent = user.email || "";
-      $("roleInfo").innerHTML = "";
-      const p = document.createElement("p");
-      p.className = "muted";
-      p.textContent = profile.role === "admin"
-        ? "Admin access: manage staff accounts and oversee the system."
-        : profile.role === "doctor"
-          ? "Doctor access: use only patient and appointment features authorized for your role."
-          : "Staff access: use only registration and workflow features authorized for your role.";
-      $("roleInfo").appendChild(p);
-      if (profile.role === "admin") $("adminPanel").classList.remove("hidden");
-    } catch (err) {
-      await signOut(auth);
-      $("loginCard").classList.remove("hidden");
-      showNotice("Could not verify your role. Check Firestore setup and Security Rules. " + friendlyError(err));
-    }
-  });
-
-  $("createForm").addEventListener("submit", async e => {
-    e.preventDefault(); hideNotice();
-    const currentUser = auth.currentUser;
-    if (!currentUser) return showNotice("Please log in again.");
-    try {
-      const adminSnap = await getDoc(doc(db, "users", currentUser.uid));
-      if (!adminSnap.exists() || adminSnap.data().role !== "admin" || adminSnap.data().active !== true) {
-        return showNotice("Only an active Admin can create accounts.");
-      }
-      const name = $("newName").value.trim();
-      const email = $("newEmail").value.trim().toLowerCase();
-      const password = $("newPassword").value;
-      const role = $("newRole").value;
-      // A secondary app keeps the current Admin session signed in.
-      const secondaryName = "accountCreator";
-      const secondaryApp = getApps().find(a => a.name === secondaryName)
-        || initializeApp(firebaseConfig, secondaryName);
-      const secondaryAuth = getAuth(secondaryApp);
-      const credential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-      await setDoc(doc(db, "users", credential.user.uid), {
-        name, email, role, active: true, createdAt: serverTimestamp(), createdBy: currentUser.uid
-      });
-      await signOut(secondaryAuth);
-      $("createForm").reset();
-      showNotice(`${role.toUpperCase()} account created for ${email}. Share the temporary password securely.`, "ok");
-    } catch (err) {
-      showNotice("Account creation failed: " + friendlyError(err) + " If Auth user was created but the role record failed, remove that user in Firebase Authentication and try again after fixing Firestore Rules.");
-    }
-  });
-</script>
-</body>
-</html>
+import {initializeApp,getApps} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {getFirestore,collection,addDoc,getDocs,doc,getDoc,serverTimestamp,limit} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyCdJMcd1p_B_TD0lyAR1ZVvWpfUgn2FN50",authDomain:"shree-patient-care.firebaseapp.com",projectId:"shree-patient-care",storageBucket:"shree-patient-care.firebasestorage.app",messagingSenderId:"546618091366",appId:"1:546618091366:web:1de449aef618e3e0e10aa7",measurementId:"G-LKW9ECKLXN"};
+const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);let profile=null,patients=[];
+function msg(id,text,type="err"){const e=$(id);e.textContent=text;e.className="status "+type}function clear(id){const e=$(id);e.textContent="";e.className="status"}
+function friendly(e){const m={"auth/invalid-credential":"Email or password is incorrect.","auth/too-many-requests":"Too many attempts; wait and try again.","permission-denied":"Firestore denied this action. Review Security Rules.","auth/network-request-failed":"Network error; check internet."};return m[e.code]||e.message||"Something went wrong."}
+function panel(id){document.querySelectorAll(".panel").forEach(p=>p.hidden=p.id!==id)}
+document.querySelectorAll("[data-panel]").forEach(b=>b.onclick=()=>panel(b.dataset.panel));
+$("loginForm").onsubmit=async e=>{e.preventDefault();clear("loginNotice");try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(x){msg("loginNotice",friendly(x))}};
+$("logout").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,async user=>{ $("loginCard").classList.toggle("hidden",!!user);$("dashboard").classList.add("hidden");if(!user)return;try{const s=await getDoc(doc(db,"users",user.uid));if(!s.exists())throw Error("No role record exists for this account.");const p=s.data();if(p.active!==true||!["admin","doctor","staff"].includes(p.role))throw Error("Account inactive or role invalid.");profile=p;$("dashboard").classList.remove("hidden");$("welcome").textContent="Welcome"+(p.name?", "+p.name:"");$("roleBadge").textContent=p.role.toUpperCase();$("userEmail").textContent=user.email||"";$("roleInfo").textContent=p.role==="admin"?"Admin access: manage the system.":p.role==="doctor"?"Doctor access: authorized clinical functions only.":"Staff access: registration and workflow functions.";panel("patientsPanel");await loadPatients()}catch(x){await signOut(auth);$("loginCard").classList.remove("hidden");msg("loginNotice",friendly(x))}});
+function updateSelects(){["readingPatient","mPatient","aPatient"].forEach(id=>{const s=$(id);s.innerHTML='<option value="">Select patient</option>';patients.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=(p.name||"Unnamed")+(p.patientCode?" · "+p.patientCode:"")+(p.phone?" · "+p.phone:"");s.appendChild(o)})})}
+async function loadPatients(){ $("patientList").textContent="";try{const s=await getDocs(collection(db,"patients"));patients=s.docs.map(d=>({id:d.id,...d.data()}));updateSelects();if(!patients.length)$("patientList").textContent="No patients found.";patients.slice(0,100).forEach(p=>{const d=document.createElement("div");d.className="item";const b=document.createElement("b");b.textContent=(p.name||"Unnamed")+(p.patientCode?" · "+p.patientCode:"");d.appendChild(b);const sub=document.createElement("div");sub.className="small";sub.textContent=[p.phone,p.gender,p.dob?"DOB: "+p.dob:"",p.diabetes].filter(Boolean).join(" · ");d.appendChild(sub);$("patientList").appendChild(d)})}catch(x){msg("patientNotice","Could not load patients: "+friendly(x))}}
+$("refreshPatients").onclick=loadPatients;
+$("patientForm").onsubmit=async e=>{e.preventDefault();clear("patientNotice");const u=auth.currentUser;if(!u||!profile)return msg("patientNotice","Please log in first.");const name=$("pName").value.trim(),phone=$("pPhone").value.trim();if(!name||!phone)return msg("patientNotice","Name and mobile are required.");const code="SPC-"+Date.now().toString().slice(-8);try{await addDoc(collection(db,"patients"),{name,phone,dob:$("pDob").value||"",gender:$("pGender").value,address:$("pAddress").value.trim(),diabetes:$("pDiabetes").value,history:$("pHistory").value.trim(),patientCode:code,createdAt:serverTimestamp(),createdBy:u.uid});msg("patientNotice","Patient saved. ID: "+code,"ok");$("patientForm").reset();await loadPatients()}catch(x){msg("patientNotice","Patient was not saved: "+friendly(x)+" Current rules may not match these fields.")}};
+$("readingForm").onsubmit=async e=>{e.preventDefault();clear("readingNotice");const u=auth.currentUser;if(!u||!profile)return msg("readingNotice","Please log in first.");try{await addDoc(collection(db,"readings"),{patientId:$("readingPatient").value,type:$("rType").value,value:$("rValue").value.trim(),date:$("rDate").value,notes:$("rNotes").value.trim(),createdAt:serverTimestamp(),createdBy:u.uid});msg("readingNotice","Reading saved.","ok");$("readingForm").reset()}catch(x){msg("readingNotice","Reading not saved: "+friendly(x)+" Rules must allow patientId and these fields.")}};
+$("medicineDemo").onclick=()=>msg("medicineNotice","Preview only. Not saved to Firebase.","info");$("appointmentDemo").onclick=()=>msg("appointmentNotice","Preview only. Not saved to Firebase.","info");
+</script></body></html>
