@@ -79,11 +79,11 @@ header{display:flex;align-items:center;justify-content:flex-start;gap:clamp(20px
  .brand-copy p{font-size:10pt!important;color:#425b6b!important}
  .nav,button,#loginCard,#patientsPanel,#readingPanel,#medicinePanel,#appointmentsPanel,#historySearch,label[for="historySearch"],label[for="historyPatient"],#historyPatient,#loadHistory,#historyNotice,#documentForm,#refreshDocuments,#documentNotice,#historyChartType,#historyChartWrap p,footer,.notice,#dashboard>.card,#dashboard>section:not(#historyPanel){display:none!important}
  main{max-width:none!important;margin:0!important;padding:0!important}
- #dashboard{display:block!important}
- #historyPanel{display:block!important;border:0!important;padding:0!important;margin:0!important;box-shadow:none!important;background:#fff!important}
+ #dashboard{display:block!important;visibility:visible!important}
+ #historyPanel{display:block!important;visibility:visible!important;border:0!important;padding:0!important;margin:0!important;box-shadow:none!important;background:#fff!important}
  #historyPanel>h2{display:block!important;font-size:19pt!important;color:#123b50!important;border-bottom:1px solid #d5e3e7!important;padding-bottom:7px!important;margin:0 0 10px!important}
  #historyPanel>p{display:none!important}
- .card,.item{box-shadow:none!important;border:1px solid #d4dfe3!important;border-radius:8px!important;padding:10px 12px!important;margin:8px 0!important;background:#fff!important;break-inside:avoid!important}
+ .card,.item{box-shadow:none!important;border:1px solid #d4dfe3!important;border-radius:8px!important;padding:9px 11px!important;margin:6px 0!important;background:#fff!important;break-inside:avoid;page-break-inside:avoid!important}
  #historyProfile,#historyReadings,#historyMedicines,#historyAppointments,#historyDocuments{display:block!important}
  #historyChartWrap:not([hidden]){display:block!important;border:1px solid #d4dfe3!important;margin-top:8px!important}
  #historyChart{max-height:180px!important;width:100%!important}
@@ -328,17 +328,60 @@ function csvCell(value){let s=value==null?"":(typeof value==="object"&&typeof va
 function downloadCSV(filename,rows){if(!rows.length){msg("exportNotice","No records available to export.","info");return}const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];const csv=[keys.map(csvCell).join(","),...rows.map(r=>keys.map(k=>csvCell(r[k])).join(","))].join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);msg("exportNotice",filename+" downloaded.","ok")}
 async function exportCollection(name,filename){clear("exportNotice");if(!auth.currentUser||!profile)return msg("exportNotice","Please log in first.");try{const snap=await getDocs(collection(db,name));const rows=snap.docs.map(d=>({documentId:d.id,...d.data()}));downloadCSV(filename,rows)}catch(e){msg("exportNotice","Export failed: "+friendly(e))}}
 $("exportPatients").onclick=()=>exportCollection("patients","shree-patient-care-patients.csv");$("exportReadings").onclick=()=>exportCollection("readings","shree-patient-care-readings.csv");$("exportMedicines").onclick=()=>exportCollection("medicines","shree-patient-care-medicines.csv");$("exportAppointments").onclick=()=>exportCollection("appointments","shree-patient-care-appointments.csv");
-// Print the currently loaded patient history; choose Save as PDF in the print dialog.
+// Print the report in a clean, separate document so app visibility/CSS cannot hide it.
 $("printHistory").onclick=()=>{
- if(!$("historyPatient").value)return msg("historyNotice","Select a patient and load their history before printing.");
+ const patientId=$("historyPatient").value;
+ if(!patientId)return msg("historyNotice","Select a patient and load their history before printing.");
  if($("historyProfile").hidden)return msg("historyNotice","Please load Patient History first.");
- const chartWrap=$("historyChartWrap"), chartNote=$("historyChartNote");
- const hideEmptyChart=!!(chartWrap && chartNote && /No numeric .*readings available/i.test(chartNote.textContent));
- if(hideEmptyChart) chartWrap.dataset.printHidden="true";
- const cleanup=()=>{if(chartWrap?.dataset.printHidden){delete chartWrap.dataset.printHidden;chartWrap.hidden=false;}};
- if(hideEmptyChart) chartWrap.hidden=true;
- window.addEventListener("afterprint",cleanup,{once:true});
- window.print();
- setTimeout(cleanup,1500);
-};
+ const sections=["historyProfile","historyReadings","historyMedicines","historyAppointments"];
+ const chartWrap=$("historyChartWrap");
+ const chartNote=$("historyChartNote");
+ const chartMessage=(chartNote?.textContent||"").trim();
+ const hideEmptyChart=!!(chartWrap && (!chartNote || /No numeric .*readings available|Record at least one numeric reading/i.test(chartMessage)));
+ const header=document.querySelector("header").cloneNode(true);
+ const report=document.createElement("div");
+ const generatedAt=new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"});
+ report.innerHTML='<h2 class="report-title">Patient History Report</h2><p class="generated-at">Generated: '+generatedAt.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</p>';
+ sections.forEach(id=>{
+   const original=$(id);
+   if(!original)return;
+   const copy=original.cloneNode(true);
+   copy.hidden=false;
+   copy.removeAttribute("hidden");
+   copy.classList.remove("hidden");
+   copy.querySelectorAll("[hidden],.hidden").forEach(el=>{el.hidden=false;el.removeAttribute("hidden");el.classList.remove("hidden");});
+   copy.querySelectorAll("button,form,label,input,select,textarea,.notice").forEach(el=>el.remove());
+   report.appendChild(copy);
+ });
+ if(chartWrap && !hideEmptyChart){
+   const copy=chartWrap.cloneNode(true);
+   copy.hidden=false; copy.removeAttribute("hidden"); copy.classList.remove("hidden");
+   copy.querySelectorAll("label,select,p").forEach(el=>el.remove());
+   report.appendChild(copy);
+ }
+ const w=window.open("","_blank");
+ if(!w){msg("historyNotice","Your browser blocked the print window. Allow pop-ups for this site and try again.","err");return;}
+ const css=`<style>
+ @page{size:auto;margin:12mm; @bottom-right{content:"Page " counter(page);font-family:Arial,Helvetica,sans-serif;font-size:8pt;color:#526673}}
+ *{box-sizing:border-box}
+ body{font-family:Arial,Helvetica,sans-serif;color:#243746;font-size:10.5pt;line-height:1.4;margin:0}
+ header{display:flex;align-items:center;gap:16px;padding:0 0 12px;margin:0 0 14px;border-bottom:2px solid #087f8c;color:#123b50}
+ header:after{display:none}
+ .brand-logo{width:95px;height:auto;max-height:82px;object-fit:contain;background:#fff;padding:3px;border:1px solid #dce8eb;border-radius:8px}
+ .brand-copy{flex:1;text-align:left;padding:0}
+ .brand-copy h1{font-size:22pt;line-height:1.15;color:#075e68;margin:0 0 4px}
+ .brand-copy p{font-size:10pt;color:#425b6b;margin:0}
+ .report-title{font-size:17pt;color:#123b50;border-bottom:1px solid #d5e3e7;padding-bottom:7px;margin:0 0 4px}
+ .generated-at{font-size:8.5pt;color:#526673;margin:0 0 10px;text-align:right}
+ .card,.item{display:block!important;visibility:visible!important;box-shadow:none!important;border:1px solid #d4dfe3!important;border-radius:8px!important;padding:10px 12px!important;margin:8px 0!important;background:#fff!important;break-inside:avoid}
+ h3{font-size:12pt;margin:0 0 6px;color:#075e68}
+ .small{font-size:9pt;color:#455967;line-height:1.5}
+ canvas{max-width:100%;height:auto}
+ </style>`;
+ w.document.open();
+ w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Patient History Report</title>'+css+'</head><body>'+header.outerHTML+report.innerHTML+'</body></html>');
+ w.document.close();
+ w.focus();
+ setTimeout(()=>{w.print();},500);
+}; 
 </script></body></html>
