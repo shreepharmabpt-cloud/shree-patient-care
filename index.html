@@ -1,7 +1,64 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#087f8c"><title>Shree Patient Care</title>
 <style>
-:root{--t:#087f8c;--ink:#243341;--muted:#65747c;--line:#d9e5e5}*{box-sizing:border-box}body{margin:0;background:#f1f7f7;font-family:system-ui,Arial,sans-serif;color:var(--ink)}header{background:var(--t);color:#fff;padding:22px 18px 26px;border-radius:0 0 26px 26px}h1{font-size:25px;margin:0 0 5px}header p{margin:0}main{max-width:900px;margin:18px auto;padding:0 14px 40px}.card{background:white;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 4px 18px #153b420b}h2{font-size:21px;margin:0 0 14px}label{display:block;font-weight:650;margin:12px 0 6px}input,select,textarea{width:100%;font:inherit;padding:12px;border:1px solid var(--line);border-radius:11px;background:white}textarea{min-height:75px}button{font:inherit;font-weight:650;border:0;border-radius:11px;padding:12px 16px;background:var(--t);color:white;cursor:pointer}.secondary{background:#e3f3f3;color:#08656d}.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hidden,[hidden]{display:none!important}.notice{padding:12px;border-radius:12px;background:#fff4df;color:#754b00;margin:12px 0;line-height:1.45}.status{padding:11px;border-radius:11px;margin:10px 0;display:none;overflow-wrap:anywhere}.status.ok{display:block;background:#e7f7ed;color:#176b46}.status.err{display:block;background:#ffeded;color:#a52b2b}.status.info{display:block;background:#eaf5ff;color:#164f7b}.small{font-size:13px;color:var(--muted);line-height:1.5}.nav{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.nav button{flex:1;min-width:115px}.item{border:1px solid var(--line);padding:12px;border-radius:11px;margin:8px 0;overflow-wrap:anywhere}.pill{display:inline-block;background:#e3f3f3;color:#08656d;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}@media(max-width:580px){.row{grid-template-columns:1fr}h1{font-size:23px}}
+
+:root{
+ --primary:#087f8c;--primary-dark:#075e68;--primary-soft:#e5f7f6;
+ --navy:#18324b;--ink:#243746;--muted:#647786;--line:#dce8eb;
+ --bg:#f2f8fa;--surface:#fff;--success:#14764d;--shadow:0 10px 28px rgba(25,65,80,.07);
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top right,#e2f6f3 0,transparent 32%),var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink);line-height:1.5}
+header{position:relative;overflow:hidden;background:linear-gradient(125deg,#075e68 0%,#087f8c 52%,#18a4a2 100%);color:#fff;padding:28px 20px 30px;border-radius:0 0 30px 30px;box-shadow:0 12px 28px rgba(8,127,140,.18)}
+header:after{content:"";position:absolute;width:190px;height:190px;border:30px solid rgba(255,255,255,.08);border-radius:50%;right:-40px;top:-80px}
+header h1{position:relative;z-index:1;font-size:clamp(23px,4vw,31px);letter-spacing:-.6px;margin:0 0 5px}
+header p{position:relative;z-index:1;margin:0;color:#e6ffff;font-size:14px}
+main{max-width:1000px;margin:22px auto;padding:0 16px 46px}
+.card{background:var(--surface);border:1px solid rgba(214,230,233,.85);border-radius:20px;padding:20px;margin:15px 0;box-shadow:var(--shadow)}
+h2{font-size:clamp(19px,3vw,23px);letter-spacing:-.3px;margin:0 0 15px;color:var(--navy)}
+h3{font-size:17px;margin:18px 0 10px;color:var(--navy)}
+p{margin-top:8px}
+label{display:block;font-weight:650;margin:13px 0 6px;color:#425b6b;font-size:13px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);padding:13px 14px;border:1px solid #d2e1e5;border-radius:12px;background:#fbfdfd;outline:none;transition:border-color .18s,box-shadow .18s}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(8,127,140,.12);background:#fff}
+textarea{min-height:84px;resize:vertical}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 17px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;cursor:pointer;box-shadow:0 4px 10px rgba(8,127,140,.12);transition:transform .15s,filter .15s}
+button:hover{filter:brightness(1.04);transform:translateY(-1px)}
+button:active{transform:translateY(0)}
+button.secondary{background:var(--primary-soft);color:var(--primary-dark);border:1px solid #ccebe8;box-shadow:none}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.hidden,[hidden]{display:none!important}
+.notice{padding:14px 16px;border-radius:14px;background:#fff8e7;color:#775516;border:1px solid #f5e4b6;margin:14px 0;line-height:1.55;font-size:14px}
+.status{padding:12px 14px;border-radius:12px;margin:12px 0;display:none;overflow-wrap:anywhere;font-size:14px}
+.status.ok{display:block;background:#e7f8ef;color:#176b46;border:1px solid #ccefdc}
+.status.err{display:block;background:#fff0f0;color:#a52b2b;border:1px solid #f4d4d4}
+.status.info{display:block;background:#edf6ff;color:#164f7b;border:1px solid #d6e8fb}
+.small{font-size:13px;color:var(--muted);line-height:1.65}
+.nav{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0}
+.nav button{flex:1;min-width:125px;padding:12px 10px}
+.item{background:linear-gradient(180deg,#fff,#fbfefe);border:1px solid var(--line);padding:15px;border-radius:15px;margin:10px 0;overflow-wrap:anywhere;box-shadow:0 3px 12px rgba(24,50,75,.035)}
+.item b{display:block;color:var(--navy);margin-bottom:5px}
+.pill{display:inline-flex;align-items:center;background:#ddf5f2;color:#07666d;border-radius:30px;padding:6px 11px;font-size:12px;font-weight:800;letter-spacing:.5px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+#historyProfile{padding:20px;border-color:#cde9e6;background:linear-gradient(135deg,#f4fffd,#fff)}
+#historyProfile h3{font-size:21px;margin:0 0 12px}
+#historyProfile .small{font-size:14px;line-height:1.9}
+#historyReadings,#historyMedicines,#historyAppointments,#historyChartWrap{background:#fbfefe;border-color:#e3edef;box-shadow:none}
+#historyReadings h3,#historyMedicines h3,#historyAppointments h3,#historyChartWrap h3{display:flex;align-items:center;gap:8px}
+#historyChart{display:block;margin-top:10px;border:1px solid #e4edef;border-radius:12px;background:#fff;max-width:100%}
+#patientSearch{margin-bottom:4px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:22px 16px}
+@media(max-width:640px){
+ header{padding:23px 16px 26px;border-radius:0 0 24px 24px}
+ main{padding:0 11px 34px;margin:14px auto}
+ .card{padding:16px;border-radius:17px;margin:12px 0}
+ .row{grid-template-columns:1fr;gap:4px}
+ .nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .nav button{min-width:0;padding:12px 8px;font-size:13px}
+ button{padding:12px 14px}
+ #historyProfile .small{font-size:13px}
+}
+
 </style></head><body>
 <header><h1>✚ Shree Patient Care</h1><p>Patient Management System · Shree Pharma And Cosmetics</p></header><main>
 <div class="notice"><b>Important:</b> Test with dummy data first. Only use real patient information after Security Rules and access controls have been reviewed and tested.</div>
@@ -12,21 +69,7 @@
 <section id="readingPanel" class="card panel" hidden><h2>2. Diabetes Readings</h2><p class="small">Record measurements only; this form does not diagnose or recommend treatment.</p><form id="readingForm"><label>Patient *</label><select id="readingPatient" required><option value="">Select patient</option></select><div class="row"><div><label>Reading type *</label><select id="rType" required><option value="">Select</option><option>FBS</option><option>PPBS</option><option>RBS</option><option>HbA1c</option><option>Blood Pressure</option><option>Weight</option></select></div><div><label>Value with units *</label><input id="rValue" placeholder="e.g. 126 mg/dL" required></div><div><label>Date/time *</label><input id="rDate" type="datetime-local" required></div></div><label>Notes</label><textarea id="rNotes"></textarea><button>Save Reading</button></form><div id="readingNotice" class="status"></div></section>
 <section id="medicinePanel" class="card panel" hidden><h2>3. Medicine Records</h2><form id="medicineForm"><label>Patient *</label><select id="mPatient" required><option value="">Select patient</option></select><div class="row"><div><label>Medicine name *</label><input id="mName" maxlength="150" required></div><div><label>Prescribed dose</label><input id="mDose" maxlength="150" placeholder="As prescribed"></div><div><label>Start date</label><input id="mStart" type="date"></div><div><label>End date</label><input id="mEnd" type="date"></div></div><label>Prescriber / instructions</label><textarea id="mNotes" maxlength="2000"></textarea><button>Save Medicine Record</button></form><div id="medicineNotice" class="status"></div><h3>Recent medicine records</h3><div class="nav"><button id="refreshMedicines" class="secondary" type="button">Refresh records</button><button id="exportMedicines" class="secondary" type="button">Export Medicines CSV</button></div><div id="medicineList"></div></section>
 <section id="appointmentsPanel" class="card panel" hidden><h2>4. Appointments & Follow-ups</h2><form id="appointmentForm"><label>Patient *</label><select id="aPatient" required><option value="">Select patient</option></select><div class="row"><div><label>Appointment date/time *</label><input id="aDate" type="datetime-local" required></div><div><label>Doctor / clinician</label><input id="aDoctor" maxlength="150"></div></div><label>Reason / follow-up notes</label><textarea id="aReason" maxlength="2000"></textarea><button>Save Appointment</button></form><div id="appointmentNotice" class="status"></div><h3>Recent appointments</h3><div class="nav"><button id="refreshAppointments" class="secondary" type="button">Refresh appointments</button><button id="exportAppointments" class="secondary" type="button">Export Appointments CSV</button></div><div id="appointmentList"></div></section>
-
-<section id="historyPanel" class="card panel" hidden>
-  <h2>5. Complete Patient History</h2>
-  <p class="small">Select a patient to review their profile, diabetes readings, medicine records, and appointments.</p>
-  <label for="historyPatient">Select patient</label>
-  <select id="historyPatient"><option value="">Select patient</option></select>
-  <button id="loadHistory" type="button" style="margin-top:12px">Load Patient History</button>
-  <div id="historyNotice" class="status"></div>
-  <section id="historyProfile" class="item" hidden></section>
-  <section id="historyReadings" class="card" hidden><h3>🩸 Diabetes Readings</h3><div id="historyReadingsList"></div></section>
-  <section id="historyMedicines" class="card" hidden><h3>💊 Medicine Records</h3><div id="historyMedicinesList"></div></section>
-  <section id="historyAppointments" class="card" hidden><h3>📅 Appointments & Follow-ups</h3><div id="historyAppointmentsList"></div></section>
-  <section id="historyChartWrap" class="card" hidden><h3>📈 Reading Trend</h3><p class="small">Shows numeric values for the selected reading type. Different units/types should not be compared on the same scale.</p><label for="historyChartType">Reading type</label><select id="historyChartType"><option value="FBS">FBS</option><option value="PPBS">PPBS</option><option value="RBS">RBS</option><option value="HbA1c">HbA1c</option><option value="Blood Pressure">Blood Pressure</option><option value="Weight">Weight</option></select><canvas id="historyChart" width="800" height="260" style="width:100%;max-width:100%;height:auto"></canvas><div id="historyChartNote" class="small"></div></section>
-</section>
-
+<section id="historyPanel" class="card panel" hidden><h2>5. Complete Patient History</h2><p class="small">Select a patient to review their profile, diabetes readings, medicine records, and appointments.</p><label for="historyPatient">Select patient</label><select id="historyPatient"><option value="">Select patient</option></select><button id="loadHistory" type="button" style="margin-top:12px">Load Patient History</button><div id="historyNotice" class="status"></div><section id="historyProfile" class="item" hidden></section><section id="historyReadings" class="card" hidden><h3>🩸 Diabetes Readings</h3><div id="historyReadingsList"></div></section><section id="historyMedicines" class="card" hidden><h3>💊 Medicine Records</h3><div id="historyMedicinesList"></div></section><section id="historyAppointments" class="card" hidden><h3>📅 Appointments & Follow-ups</h3><div id="historyAppointmentsList"></div></section><section id="historyChartWrap" class="card" hidden><h3>📈 Reading Trend</h3><p class="small">Shows numeric values for the selected reading type. Different units/types should not be compared on the same scale.</p><label for="historyChartType">Reading type</label><select id="historyChartType"><option value="FBS">FBS</option><option value="PPBS">PPBS</option><option value="RBS">RBS</option><option value="HbA1c">HbA1c</option><option value="Blood Pressure">Blood Pressure</option><option value="Weight">Weight</option></select><canvas id="historyChart" width="800" height="260" style="width:100%;max-width:100%;height:auto"></canvas><div id="historyChartNote" class="small"></div></section></section>
 <section class="card"><h2>Export Diabetes Readings</h2><p class="small">Download records currently stored in Firestore as CSV files. CSV files may contain sensitive medical data; store them securely.</p><button id="exportReadings" class="secondary" type="button">Export Readings CSV</button><div id="exportNotice" class="status"></div></section></section></main><footer>Shree Patient Care · Keep patient information confidential</footer>
 <script type="module">
 import {initializeApp,getApps} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -44,8 +87,7 @@ onAuthStateChanged(auth,async user=>{ $("loginCard").classList.toggle("hidden",!
 function updateSelects(){["readingPatient","mPatient","aPatient","historyPatient"].forEach(id=>{const s=$(id);s.innerHTML='<option value="">Select patient</option>';patients.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=(p.name||"Unnamed")+(p.patientCode?" · "+p.patientCode:"")+(p.phone?" · "+p.phone:"");s.appendChild(o)})})}
 function renderPatients(){const el=$("patientList");el.replaceChildren();const term=($("patientSearch").value||"").trim().toLowerCase();const shown=patients.filter(p=>[p.name,p.patientCode,p.id,p.phone].some(v=>String(v||"").toLowerCase().includes(term)));if(!shown.length){el.textContent=term?"No matching patients found.":"No patients found.";return}shown.forEach(p=>{const d=document.createElement("div");d.className="item";const b=document.createElement("b");b.textContent=(p.name||"Unnamed")+(p.patientCode?" · "+p.patientCode:"");d.appendChild(b);const sub=document.createElement("div");sub.className="small";sub.textContent=["Firestore ID: "+p.id,p.phone,p.gender,p.dob?"DOB: "+p.dob:"",p.diabetes].filter(Boolean).join(" · ");d.appendChild(sub);const view=document.createElement("button");view.type="button";view.className="secondary";view.style.marginTop="10px";view.textContent="View full history";view.onclick=()=>{panel("historyPanel");$("historyPatient").value=p.id;loadPatientHistory()};d.appendChild(view);el.appendChild(d)})}
 async function loadPatients(){ $("patientList").textContent="Loading…";try{const s=await getDocs(query(collection(db,"patients"),limit(100)));patients=s.docs.map(d=>({id:d.id,...d.data()}));updateSelects();renderPatients()}catch(x){msg("patientNotice","Could not load patients: "+friendly(x))}}
-$("patientSearch").addEventListener("input",renderPatients);
-$("refreshPatients").onclick=loadPatients;
+$("patientSearch").addEventListener("input",renderPatients);$("refreshPatients").onclick=loadPatients;
 $("patientForm").onsubmit=async e=>{e.preventDefault();clear("patientNotice");const u=auth.currentUser;if(!u||!profile)return msg("patientNotice","Please log in first.");const name=$("pName").value.trim(),phone=$("pPhone").value.trim();if(!name||!phone)return msg("patientNotice","Name and mobile are required.");const code="SPC-"+Date.now().toString().slice(-8);try{await addDoc(collection(db,"patients"),{name,phone,dob:$("pDob").value||"",gender:$("pGender").value,address:$("pAddress").value.trim(),diabetes:$("pDiabetes").value,history:$("pHistory").value.trim(),patientCode:code,createdAt:serverTimestamp(),createdBy:u.uid});msg("patientNotice","Patient saved. ID: "+code,"ok");$("patientForm").reset();await loadPatients()}catch(x){msg("patientNotice","Patient was not saved: "+friendly(x)+" Check the published rules and field names.")}};
 $("readingForm").onsubmit=async e=>{e.preventDefault();clear("readingNotice");const u=auth.currentUser;if(!u||!profile)return msg("readingNotice","Please log in first.");const patientId=$("readingPatient").value;if(!patients.some(p=>p.id===patientId))return msg("readingNotice","Select a valid patient.");try{await addDoc(collection(db,"readings"),{patientId,type:$("rType").value,value:$("rValue").value.trim(),date:$("rDate").value,notes:$("rNotes").value.trim(),createdAt:serverTimestamp(),createdBy:u.uid});msg("readingNotice","Reading saved.","ok");$("readingForm").reset()}catch(x){msg("readingNotice","Reading not saved: "+friendly(x))}};
 $("medicineForm").onsubmit=async e=>{e.preventDefault();clear("medicineNotice");const u=auth.currentUser;if(!u||!profile)return msg("medicineNotice","Please log in first.");const patientId=$("mPatient").value;if(!patients.some(p=>p.id===patientId))return msg("medicineNotice","Select a valid patient.");const medicineName=$("mName").value.trim();if(!medicineName)return msg("medicineNotice","Medicine name is required.");const startDate=$("mStart").value,endDate=$("mEnd").value;if(startDate&&endDate&&endDate<startDate)return msg("medicineNotice","End date cannot be earlier than start date.");try{await addDoc(collection(db,"medicines"),{patientId,medicineName,dose:$("mDose").value.trim(),startDate,endDate,notes:$("mNotes").value.trim(),createdAt:serverTimestamp(),createdBy:u.uid});msg("medicineNotice","Medicine record saved.","ok");$("medicineForm").reset();await loadMedicines()}catch(x){msg("medicineNotice","Medicine record not saved: "+friendly(x))}};
@@ -53,23 +95,54 @@ $("appointmentForm").onsubmit=async e=>{e.preventDefault();clear("appointmentNot
 function renderItems(target,docs,kind){const el=$(target);el.replaceChildren();if(!docs.length){el.textContent="No records found.";return}docs.forEach(s=>{const d=s.data(),p=patients.find(x=>x.id===d.patientId);const box=document.createElement("div");box.className="item";const title=document.createElement("b");title.textContent=(p?.name||"Patient")+(kind==="medicine"?" · "+(d.medicineName||"Medicine"):" · Appointment");box.appendChild(title);const sub=document.createElement("div");sub.className="small";sub.textContent=kind==="medicine"?["Dose: "+(d.dose||"Not recorded"),d.startDate?"Start: "+d.startDate:"",d.endDate?"End: "+d.endDate:"",d.notes].filter(Boolean).join(" · "):["Date: "+(d.appointmentDate||"Not recorded"),d.doctor?"Clinician: "+d.doctor:"",d.reason].filter(Boolean).join(" · ");box.appendChild(sub);el.appendChild(box)})}
 async function loadMedicines(){const el=$("medicineList");el.textContent="Loading…";try{const s=await getDocs(query(collection(db,"medicines"),orderBy("createdAt","desc"),limit(50)));renderItems("medicineList",s.docs,"medicine")}catch(x){el.textContent="Could not load medicine records: "+friendly(x)}}
 async function loadAppointments(){const el=$("appointmentList");el.textContent="Loading…";try{const s=await getDocs(query(collection(db,"appointments"),orderBy("createdAt","desc"),limit(50)));renderItems("appointmentList",s.docs,"appointment")}catch(x){el.textContent="Could not load appointments: "+friendly(x)}}
-
 $("refreshMedicines").onclick=loadMedicines;$("refreshAppointments").onclick=loadAppointments;
-
 function hideHistorySections(){["historyProfile","historyReadings","historyMedicines","historyAppointments","historyChartWrap"].forEach(id=>$(id).hidden=true)}
-function appendHistoryRows(target,rows,kind){const el=$(target);el.replaceChildren();if(!rows.length){el.textContent="No records found.";return}rows.forEach(item=>{const d=item.data;const box=document.createElement("div");box.className="item";const title=document.createElement("b");let titleText="",detailText="";if(kind==="reading"){titleText=(d.type||"Reading")+" · "+(d.value||"");detailText=[d.date?"Date: "+d.date:"",d.notes||""].filter(Boolean).join(" · ")}else if(kind==="medicine"){titleText=d.medicineName||"Medicine";detailText=[d.dose?"Dose: "+d.dose:"",d.startDate?"Start: "+d.startDate:"",d.endDate?"End: "+d.endDate:"",d.notes||""].filter(Boolean).join(" · ")}else{titleText="Appointment · "+(d.appointmentDate||"");detailText=[d.doctor?"Clinician: "+d.doctor:"",d.reason||""].filter(Boolean).join(" · ")}box.appendChild(title);const sub=document.createElement("div");sub.className="small";sub.textContent=detailText||"No additional details";box.appendChild(sub);el.appendChild(box)})}
-async function loadPatientHistory(){clear("historyNotice");hideHistorySections();const patientId=$("historyPatient").value;if(!patientId)return msg("historyNotice","Please select a patient.");const patient=patients.find(p=>p.id===patientId);if(!patient)return msg("historyNotice","Patient not found. Refresh the patient list and try again.");try{$("historyProfile").replaceChildren();const heading=document.createElement("h3");heading.textContent="🧑 "+(patient.name||"Unnamed patient");$("historyProfile").appendChild(heading);const details=document.createElement("p");details.className="small";details.textContent=["Patient Code: "+(patient.patientCode||"Not assigned"),"Firestore ID: "+patient.id,"Mobile: "+(patient.phone||"Not recorded"),"DOB: "+(patient.dob||"Not recorded"),"Gender: "+(patient.gender||"Not recorded"),"Diabetes: "+(patient.diabetes||"Not recorded"),"Address: "+(patient.address||"Not recorded"),"History: "+(patient.history||"Not recorded")].join("\\n");details.style.whiteSpace="pre-line";$("historyProfile").appendChild(details);$("historyProfile").hidden=false;
+function displayDate(value){if(!value)return "";if(typeof value==="object"&&typeof value.toDate==="function")return value.toDate().toLocaleString();return String(value).replace("T"," ")}
+function appendHistoryRows(target,rows,kind){
+ const el=$(target);el.replaceChildren();
+ if(!rows.length){el.textContent="No records found.";return}
+ rows.forEach(item=>{
+  const d=item.data,box=document.createElement("div");box.className="item";
+  const title=document.createElement("b");let titleText="",details=[];
+  if(kind==="reading"){
+   const type=d.type||d.readingType||d.testName||"Reading";
+   const value=d.value??d.readingValue??d.result??d.measurement;
+   titleText=type+" · "+(value!==undefined&&value!==""?String(value):"Value not recorded");
+   const date=displayDate(d.date||d.readingDate||d.recordedAt||d.createdAt);
+   if(date)details.push("Date/time: "+date);
+   if(d.notes)details.push("Notes: "+d.notes);
+  }else if(kind==="medicine"){
+   titleText=d.medicineName||d.name||d.medicine||d.drugName||"Medicine name not recorded";
+   const dose=d.dose||d.prescribedDose||d.frequency;
+   if(dose)details.push("Dose: "+dose);
+   const start=d.startDate||d.start||d.dateStarted;
+   const end=d.endDate||d.end||d.dateEnded;
+   if(start)details.push("Start: "+displayDate(start));
+   if(end)details.push("End: "+displayDate(end));
+   const instructions=d.notes||d.instructions||d.prescriber;
+   if(instructions)details.push("Instructions: "+instructions);
+  }else{
+   titleText="Appointment";
+   const date=displayDate(d.appointmentDate||d.date||d.datetime||d.followUpDate||d.createdAt);
+   if(date)titleText+=" · "+date;
+   const doctor=d.doctor||d.clinician||d.prescriber;
+   if(doctor)details.push("Clinician: "+doctor);
+   const reason=d.reason||d.notes||d.followUpNotes;
+   if(reason)details.push("Reason: "+reason);
+   if(d.status)details.push("Status: "+d.status);
+  }
+  title.textContent=titleText;box.appendChild(title);
+  const sub=document.createElement("div");sub.className="small";sub.textContent=details.join(" · ")||"No additional details recorded";box.appendChild(sub);el.appendChild(box);
+ });
+}
+async function loadPatientHistory(){clear("historyNotice");hideHistorySections();const patientId=$("historyPatient").value;if(!patientId)return msg("historyNotice","Please select a patient.");const patient=patients.find(p=>p.id===patientId);if(!patient)return msg("historyNotice","Patient not found. Refresh the patient list and try again.");try{$("historyProfile").replaceChildren();const heading=document.createElement("h3");heading.textContent="🧑 "+(patient.name||"Unnamed patient");$("historyProfile").appendChild(heading);const details=document.createElement("p");details.className="small";details.style.whiteSpace="normal";[["Patient Code",patient.patientCode||"Not assigned"],["Firestore ID",patient.id],["Mobile",patient.phone||"Not recorded"],["DOB",patient.dob||"Not recorded"],["Gender",patient.gender||"Not recorded"],["Diabetes",patient.diabetes||"Not recorded"],["Address",patient.address||"Not recorded"],["History",patient.history||"Not recorded"]].forEach(([label,value])=>{const line=document.createElement("div");line.style.margin="5px 0";const strong=document.createElement("strong");strong.textContent=label+": ";line.appendChild(strong);line.appendChild(document.createTextNode(String(value)));details.appendChild(line)});$("historyProfile").appendChild(details);$("historyProfile").hidden=false;
 const specs=[["readings","historyReadings","historyReadingsList","reading"],["medicines","historyMedicines","historyMedicinesList","medicine"],["appointments","historyAppointments","historyAppointmentsList","appointment"]];let readings=[];
 for(const [collectionName,sectionId,target,kind] of specs){const snap=await getDocs(query(collection(db,collectionName),limit(300)));const rows=snap.docs.map(s=>({id:s.id,data:s.data()})).filter(x=>x.data.patientId===patientId);rows.sort((a,b)=>String((b.data.date||b.data.appointmentDate||b.data.createdAt?.seconds||b.data.startDate)||"").localeCompare(String((a.data.date||a.data.appointmentDate||a.data.createdAt?.seconds||a.data.startDate)||"")));appendHistoryRows(target,rows,kind);$(sectionId).hidden=false;if(kind==="reading")readings=rows}
 drawHistoryChart(readings,$("historyChartType").value);$("historyChartWrap").hidden=false;msg("historyNotice","Patient history loaded. Records shown are those returned by Firestore.","ok")}catch(e){msg("historyNotice","Could not load complete history: "+friendly(e)+" Check collection read permissions.")}}
-function drawHistoryChart(readings,type){const canvas=$("historyChart"),ctx=canvas.getContext("2d");ctx.clearRect(0,0,canvas.width,canvas.height);const parsed=readings.filter(r=>r.data.type===type).map(r=>({label:r.data.date||"",value:parseFloat(String(r.data.value||"").replace(/[^0-9.\-]/g,""))})).filter(x=>Number.isFinite(x.value)).reverse();if(parsed.length<1){ctx.font="18px system-ui";ctx.fillText("No numeric "+type+" readings available.",20,45);$("historyChartNote").textContent="Record at least one numeric reading of this type to display the trend.";return}const vals=parsed.map(x=>x.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1,left=55,right=canvas.width-20,top=25,bottom=canvas.height-45;ctx.font="12px system-ui";ctx.beginPath();ctx.moveTo(left,top);ctx.lineTo(left,bottom);ctx.lineTo(right,bottom);ctx.stroke();vals.forEach((v,i)=>{const x=left+(parsed.length===1?0:i*(right-left)/(parsed.length-1));const y=bottom-((v-min)/range)*(bottom-top);if(i===0)ctx.beginPath(),ctx.moveTo(x,y);else ctx.lineTo(x,y);ctx.fillText(String(v),x+4,y-8)});ctx.stroke();parsed.forEach((p,i)=>{const x=left+(parsed.length===1?0:i*(right-left)/(parsed.length-1));ctx.beginPath();ctx.arc(x,bottom-((p.value-min)/range)*(bottom-top),4,0,Math.PI*2);ctx.fill();if(i===0||i===parsed.length-1)ctx.fillText(p.label.slice(0,10),x-15,bottom+20)});$("historyChartNote").textContent=parsed.length+" numeric "+type+" reading(s). This chart is for review only, not diagnosis."}
+function drawHistoryChart(readings,type){const canvas=$("historyChart"),ctx=canvas.getContext("2d");ctx.clearRect(0,0,canvas.width,canvas.height);const parsed=readings.filter(r=>r.data.type===type).map(r=>({label:displayDate(r.data.date||r.data.readingDate||r.data.createdAt),value:parseFloat(String(r.data.value??r.data.readingValue??r.data.result??"").replace(/[^0-9.\-]/g,""))})).filter(x=>Number.isFinite(x.value)).reverse();if(parsed.length<1){ctx.font="18px system-ui";ctx.fillText("No numeric "+type+" readings available.",20,45);$("historyChartNote").textContent="Record at least one numeric reading of this type to display the trend.";return}const vals=parsed.map(x=>x.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1,left=55,right=canvas.width-20,top=25,bottom=canvas.height-45;ctx.font="12px system-ui";ctx.beginPath();ctx.moveTo(left,top);ctx.lineTo(left,bottom);ctx.lineTo(right,bottom);ctx.stroke();vals.forEach((v,i)=>{const x=left+(parsed.length===1?0:i*(right-left)/(parsed.length-1));const y=bottom-((v-min)/range)*(bottom-top);if(i===0)ctx.beginPath(),ctx.moveTo(x,y);else ctx.lineTo(x,y);ctx.fillText(String(v),x+4,y-8)});ctx.stroke();parsed.forEach((p,i)=>{const x=left+(parsed.length===1?0:i*(right-left)/(parsed.length-1));ctx.beginPath();ctx.arc(x,bottom-((p.value-min)/range)*(bottom-top),4,0,Math.PI*2);ctx.fill();if(i===0||i===parsed.length-1)ctx.fillText(p.label.slice(0,10),x-15,bottom+20)});$("historyChartNote").textContent=parsed.length+" numeric "+type+" reading(s). This chart is for review only, not diagnosis."}
 $("loadHistory").onclick=loadPatientHistory;$("historyPatient").addEventListener("change",()=>{hideHistorySections();clear("historyNotice")});$("historyChartType").addEventListener("change",async()=>{const patientId=$("historyPatient").value;if(!patientId)return;try{const snap=await getDocs(query(collection(db,"readings"),limit(300)));const rows=snap.docs.map(s=>({id:s.id,data:s.data()})).filter(x=>x.data.patientId===patientId);drawHistoryChart(rows,$("historyChartType").value)}catch(e){msg("historyNotice","Could not refresh chart: "+friendly(e))}});
-
 function csvCell(value){let s=value==null?"":(typeof value==="object"&&typeof value.toDate==="function"?value.toDate().toISOString():String(value));if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'}
 function downloadCSV(filename,rows){if(!rows.length){msg("exportNotice","No records available to export.","info");return}const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];const csv=[keys.map(csvCell).join(","),...rows.map(r=>keys.map(k=>csvCell(r[k])).join(","))].join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);msg("exportNotice",filename+" downloaded.","ok")}
 async function exportCollection(name,filename){clear("exportNotice");if(!auth.currentUser||!profile)return msg("exportNotice","Please log in first.");try{const snap=await getDocs(collection(db,name));const rows=snap.docs.map(d=>({documentId:d.id,...d.data()}));downloadCSV(filename,rows)}catch(e){msg("exportNotice","Export failed: "+friendly(e))}}
-$("exportPatients").onclick=()=>exportCollection("patients","shree-patient-care-patients.csv");
-$("exportReadings").onclick=()=>exportCollection("readings","shree-patient-care-readings.csv");
-$("exportMedicines").onclick=()=>exportCollection("medicines","shree-patient-care-medicines.csv");
-$("exportAppointments").onclick=()=>exportCollection("appointments","shree-patient-care-appointments.csv");
+$("exportPatients").onclick=()=>exportCollection("patients","shree-patient-care-patients.csv");$("exportReadings").onclick=()=>exportCollection("readings","shree-patient-care-readings.csv");$("exportMedicines").onclick=()=>exportCollection("medicines","shree-patient-care-medicines.csv");$("exportAppointments").onclick=()=>exportCollection("appointments","shree-patient-care-appointments.csv");
 </script></body></html>
