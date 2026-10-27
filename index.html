@@ -432,7 +432,7 @@ async function showVitalsBeforePrint(patient, preferredAppointment=null){
  const suggestedDoctor=suggestedAppointment?.doctor||patient.doctor;if(suggestedDoctor && [...doctorSelect.options].some(o=>o.value===suggestedDoctor)) doctorSelect.value=suggestedDoctor;refreshHint();
  overlay.querySelector("#vpWeight").focus();
 }
-function printPrescriptionForPatient(p){if(!p)return msg("patientNotice","Please select a patient before printing.");const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");const age=p.dob?(()=>{const d=new Date(p.dob+"T00:00:00");if(Number.isNaN(d.getTime()))return "Not recorded";const n=new Date();if(d>new Date(n.getFullYear(),n.getMonth(),n.getDate()))return "Not recorded";let a=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;return a+" years";})():"Not recorded";const w=window.open("","_blank");if(!w)return msg("patientNotice","Your browser blocked the print window. Allow pop-ups for this site and try again.");const generated=p.createdAtLocal||new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"});const logo=document.querySelector("header .brand-logo");const logoHtml=logo?logo.outerHTML:"";
+function printPrescriptionForPatient(p){if(!p)return msg("patientNotice","Please select a patient before printing.");const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");const age=p.dob?(()=>{const d=new Date(p.dob+"T00:00:00");if(Number.isNaN(d.getTime()))return Number.isFinite(Number(p.age))&&p.age!==""?Number(p.age)+" years":"Not recorded";const n=new Date();if(d>new Date(n.getFullYear(),n.getMonth(),n.getDate()))return "Not recorded";let a=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;return a+" years";})():(Number.isFinite(Number(p.age))&&p.age!==""?Number(p.age)+" years":"Not recorded");const w=window.open("","_blank");if(!w)return msg("patientNotice","Your browser blocked the print window. Allow pop-ups for this site and try again.");const generated=p.createdAtLocal||new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"});const logo=document.querySelector("header .brand-logo");const logoHtml=logo?logo.outerHTML:"";
 // Doctor-specific prescription layout: only Dr. Krushnasis Dash uses this format.
 if(String(p.doctor||"").trim().toLowerCase().replace(/\s+/g," ")==="dr. krushnasis dash"){
  const spec=doctorSpecialty(p.doctor)||"Medicine & Diabetes Specialist";
@@ -580,6 +580,56 @@ async function findDuplicate(collectionName,patientId,matchFn){
 }
 function onlineBookingToAppointmentDoc(s){const raw=s.data();const payment=String(raw.paymentStatus||'').toUpperCase();const paid=['SUCCESS','PAID','COMPLETED'].includes(payment);const appointmentDate=String(raw.appointmentDate||raw.appointmentDay||'').slice(0,10);const d={...raw,appointmentDate,appointmentDay:appointmentDate,doctor:String(raw.doctorName||raw.doctor||''),patientName:String(raw.patientName||raw.name||'Online patient'),phone:String(raw.phone||raw.mobile||''),reason:String(raw.reason||'Online booking'),feeStatus:paid?'Paid':'Pending',queueNumber:raw.queueNumber==null?null:Number(raw.queueNumber),source:'online',onlineBookingId:s.id};return {id:'online__'+s.id,_online:true,_onlineId:s.id,data:()=>d};}
 function combinedAppointmentDocs(appointmentDocs,onlineDocs){const known=new Set();appointmentDocs.forEach(s=>{const d=s.data();[d.onlineBookingId,d.bookingId,d.orderId].filter(Boolean).forEach(v=>known.add(String(v)));});const normalized=onlineDocs.filter(s=>{const d=s.data();const status=String(d.paymentStatus||'').toUpperCase();const confirmed=['SUCCESS','PAID','COMPLETED'].includes(status)||d.queueNumber!=null;return confirmed&&!known.has(s.id)&&!known.has(String(d.bookingId||''))&&!known.has(String(d.orderId||''));}).map(onlineBookingToAppointmentDoc);return [...appointmentDocs,...normalized].sort((a,b)=>{const da=a.data(),db=b.data();const ta=da.createdAt&&typeof da.createdAt.toMillis==='function'?da.createdAt.toMillis():Date.parse(da.createdAt||da.appointmentDate||'')||0;const tb=db.createdAt&&typeof db.createdAt.toMillis==='function'?db.createdAt.toMillis():Date.parse(db.createdAt||db.appointmentDate||'')||0;return tb-ta;});}
+// Identify public bookings only by the combined name + gender + mobile number.
+function normalizePatientPhone(value){return String(value||"").replace(/\D/g,"").slice(-10);}
+function normalizePatientName(value){return String(value||"").normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}]/gu,"");}
+function normalizePatientGender(value){const v=String(value||"").trim().toLowerCase();if(["m","male","man","पुरुष"].includes(v))return "male";if(["f","female","woman","महिला"].includes(v))return "female";if(["other","others","अन्य"].includes(v))return "other";return v;}
+async function resolveOnlineBookingPatient(booking,onlineBookingId){
+  const phone=normalizePatientPhone(booking.phone||booking.mobile);
+  const bookingName=String(booking.patientName||booking.name||"").trim();
+  const bookingGender=String(booking.gender||booking.sex||"").trim();
+  if(!phone||phone.length!==10){alert("This online booking has no valid 10-digit mobile number. Update the booking details before printing.");return null;}
+  if(!bookingName||!bookingGender){alert("Patient identity cannot be verified safely because the online booking is missing the patient name or gender. Please update the booking form/details first. Prescription was not opened.");return null;}
+  const patientSnap=await getDocs(collection(db,"patients"));
+  const allPatients=patientSnap.docs.map(x=>({id:x.id,...x.data()}));
+  const linkedId=String(booking.patientId||"");
+  let patient=linkedId?allPatients.find(x=>x.id===linkedId):null;
+  // Even a linked ID is accepted only if all three identity fields agree.
+  const identityMatches=(x)=>normalizePatientPhone(x.phone)===phone&&normalizePatientName(x.name)===normalizePatientName(bookingName)&&normalizePatientGender(x.gender)===normalizePatientGender(bookingGender);
+  if(patient&&!identityMatches(patient))patient=null;
+  if(!patient){
+    const matches=allPatients.filter(identityMatches);
+    if(matches.length===1)patient=matches[0];
+    else if(matches.length>1){
+      const options=matches.map((x,i)=>`${i+1}. ${x.name||"Unnamed"} | ${x.gender||"Gender not recorded"} | ${x.phone||""} | ${x.patientCode||x.id}`).join("\n");
+      const answer=prompt("More than one patient record matches name, gender, and mobile number. Select the correct SPC record:\n\n"+options+"\n\nCancel to stop.");
+      if(answer===null)return null;
+      const chosen=Number(answer);
+      if(!Number.isInteger(chosen)||chosen<1||chosen>matches.length){alert("Invalid patient selection. Prescription was not opened.");return null;}
+      patient=matches[chosen-1];
+    }
+  }
+  if(patient){patients=allPatients;return patient;}
+  const currentUser=auth.currentUser;
+  if(!currentUser)throw new Error("Please log in as clinic staff/admin first.");
+  let rawAge=booking.age;
+  let ageValue=(rawAge!==""&&rawAge!=null&&Number.isInteger(Number(rawAge))&&Number(rawAge)>=0&&Number(rawAge)<=125)?Number(rawAge):"";
+  if(ageValue===""&&!booking.dob){
+    const enteredAge=prompt("Age was not collected online. Enter patient's age in years, or leave blank if unknown:","");
+    if(enteredAge===null)return null;
+    if(enteredAge.trim()!==""&&Number.isInteger(Number(enteredAge))&&Number(enteredAge)>=0&&Number(enteredAge)<=125)ageValue=Number(enteredAge);
+    else if(enteredAge.trim()!==""){alert("Age must be a whole number between 0 and 125. Please print again and enter a valid age.");return null;}
+  }
+  let dobValue=String(booking.dob||"");
+  if(!dobValue&&ageValue!==""){const year=new Date().getFullYear()-ageValue;dobValue=`${year}-01-01`;}
+  const genderValue=bookingGender;
+  const patientCode="SPC-"+Date.now().toString().slice(-8);
+  const patientData={name:bookingName,phone,dob:dobValue,age:ageValue,gender:genderValue,address:String(booking.address||""),weight:booking.weight!==undefined&&booking.weight!==null&&booking.weight!==""?Number(booking.weight):"",bloodPressure:String(booking.bloodPressure||""),doctor:String(booking.doctorName||booking.doctor||""),diabetes:String(booking.diabetes||""),history:String(booking.history||booking.reason||""),patientCode,createdAt:serverTimestamp(),createdBy:currentUser.uid};
+  const created=await addDoc(collection(db,"patients"),patientData);
+  patient={...patientData,id:created.id,createdAtLocal:new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"})};
+  patients=[...allPatients,patient];
+  return patient;
+}
 function renderItems(target,docs,kind){const el=$(target);el.replaceChildren();if(!docs.length){el.textContent="No records found.";return}docs.forEach(s=>{const d=s.data(),p=patients.find(x=>x.id===d.patientId);const box=document.createElement("div");box.className="item";if(s._online)box.dataset.source="online";const title=document.createElement("b");title.textContent=(p?.name||d.patientName||"Patient")+(kind==="medicine"?" · "+(d.medicineName||"Medicine"):" · Appointment");box.appendChild(title);const sub=document.createElement("div");sub.className="small";sub.textContent=kind==="medicine"?["Dose: "+(d.dose||"Not recorded"),d.startDate?"Start: "+d.startDate:"",d.endDate?"End: "+d.endDate:"",d.notes].filter(Boolean).join(" · "):["Date: "+String(d.appointmentDay||d.appointmentDate||"Not recorded").slice(0,10),d.queueNumber?"Queue / Serial No.: "+d.queueNumber:"",d.doctor?"Clinician: "+d.doctor:"",(String(d.feeStatus||((d.queueNumber!=null)?"Paid":"Pending"))==="Paid"&&d.queueNumber!=null)?"Queue / Serial No.: "+d.queueNumber:"Queue: Not assigned until fees are paid",d.reason,s._online?"Source: Public online booking":"Source: Clinic booking",s._online&&d.phone?"Mobile: "+d.phone:"",s._online&&d.bookingStatus?"Booking status: "+String(d.bookingStatus).replaceAll('_',' '):""].filter(Boolean).join(" · ");box.appendChild(sub);
  const actions=document.createElement("div");actions.className="nav";actions.style.marginBottom="0";
  if(kind==="appointment"&&!s._online){
@@ -602,10 +652,16 @@ function renderItems(target,docs,kind){const el=$(target);el.replaceChildren();i
    actions.appendChild(printRx);
  }
  if(kind==="appointment"&&s._online){
-   const printOnline=document.createElement("button");printOnline.type="button";printOnline.className="secondary";printOnline.textContent="🖨️ Print Prescription";
-   printOnline.onclick=()=>{
-     const onlinePatient={id:"online-patient__"+s._onlineId,name:d.patientName||d.name||"Online patient",phone:d.phone||d.mobile||"",dob:d.dob||"",age:d.age||"",gender:d.gender||"",address:d.address||"",weight:d.weight??"",bloodPressure:d.bloodPressure||"",diabetes:d.diabetes||"",history:d.history||"",doctor:d.doctor||d.doctorName||"",patientCode:d.patientCode||"",queueNumber:d.queueNumber??null,queueAppointmentDate:String(d.appointmentDate||d.appointmentDay||"").slice(0,10),feeStatus:d.feeStatus||((d.queueNumber!=null)?"Paid":"Pending")};
-     showVitalsBeforePrint(onlinePatient,{id:s.id,...d,_online:true,appointmentDate:onlinePatient.queueAppointmentDate,appointmentDay:onlinePatient.queueAppointmentDate,doctor:onlinePatient.doctor,feeStatus:onlinePatient.feeStatus,queueNumber:onlinePatient.queueNumber});
+   const printOnline=document.createElement("button");printOnline.type="button";printOnline.className="secondary";printOnline.textContent="🖨️ Identify Patient & Print Prescription";
+   printOnline.onclick=async()=>{
+     printOnline.disabled=true;
+     try{
+       const resolved=await resolveOnlineBookingPatient(d,s._onlineId);
+       if(!resolved)return;
+       const onlinePatient={...resolved,doctor:d.doctor||d.doctorName||resolved.doctor||"",queueNumber:d.queueNumber??null,queueAppointmentDate:String(d.appointmentDate||d.appointmentDay||"").slice(0,10),feeStatus:d.feeStatus||((d.queueNumber!=null)?"Paid":"Pending")};
+       showVitalsBeforePrint(onlinePatient,{id:s.id,...d,_online:true,appointmentDate:onlinePatient.queueAppointmentDate,appointmentDay:onlinePatient.queueAppointmentDate,doctor:onlinePatient.doctor,feeStatus:onlinePatient.feeStatus,queueNumber:onlinePatient.queueNumber});
+     }catch(err){alert("Could not identify/link this online patient: "+friendly(err));}
+     finally{printOnline.disabled=false;}
    };
    actions.appendChild(printOnline);
  }
