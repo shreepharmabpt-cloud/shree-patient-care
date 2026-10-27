@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book Appointment | Shree Patient Care</title>
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f6fb;
+      margin: 0;
+      padding: 20px;
+      color: #172033;
+    }
+    .card {
+      max-width: 480px;
+      margin: 25px auto;
+      padding: 24px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 6px 24px #00000010;
+    }
+    h1 { font-size: 24px; margin-top: 0; }
+    label { display: block; margin: 15px 0 6px; font-weight: 600; }
+    input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccd3df;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .doctor {
+      background: #f1f5f9;
+      padding: 14px;
+      border-radius: 10px;
+      margin: 18px 0;
+      line-height: 1.7;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 20px;
+      border: 0;
+      border-radius: 9px;
+      background: #155eef;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    #message { margin-top: 16px; line-height: 1.6; overflow-wrap: anywhere; }
+    .small { color: #5b6474; font-size: 13px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Book Your Appointment</h1>
+    <p>Shree Patient Care · Online Consultation Booking</p>
+
+    <div class="doctor">
+      <strong>Doctor:</strong> Dr. Smruti Sikha Sharma<br>
+      <strong>Consultation Fee:</strong> ₹500
+    </div>
+
+    <form id="bookingForm">
+      <label for="patientName">Patient full name</label>
+      <input id="patientName" maxlength="100" required>
+
+      <label for="phone">Mobile number</label>
+      <input id="phone" type="tel" inputmode="numeric"
+             maxlength="10" pattern="[6-9][0-9]{9}" required>
+
+      <label for="email">Email (optional)</label>
+      <input id="email" type="email" maxlength="254">
+
+      <label for="appointmentDate">Preferred appointment date</label>
+      <input id="appointmentDate" type="date" required>
+
+      <p class="small">
+        Please check your details before proceeding. Appointment
+        availability will need to be confirmed by the clinic.
+      </p>
+
+      <button id="payButton" type="submit">
+        Proceed to Pay ₹500
+      </button>
+    </form>
+
+    <div id="message" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    const API =
+      "https://shree-patient-care-api.shreepharmabpt.workers.dev";
+
+    const message = document.getElementById("message");
+    const payButton = document.getElementById("payButton");
+    const dateInput = document.getElementById("appointmentDate");
+
+    function localToday() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    dateInput.min = localToday();
+    dateInput.value = localToday();
+
+    const params = new URLSearchParams(location.search);
+    const returnedOrderId = params.get("order_id");
+
+    async function checkReturnedPayment() {
+      if (params.get("payment") !== "return" || !returnedOrderId) return;
+
+      document.getElementById("bookingForm").hidden = true;
+      message.textContent = "Checking your payment with Cashfree…";
+
+      try {
+        const response = await fetch(`${API}/verify-payment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId: returnedOrderId })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          message.textContent =
+            "We could not confirm the payment yet. Please contact the clinic with your order ID: " +
+            returnedOrderId;
+          return;
+        }
+
+        if (result.verified === true) {
+          message.textContent =
+            "Payment verified successfully. Your queue number has not been assigned by this version of the system. Please wait for clinic confirmation.";
+        } else {
+          message.textContent =
+            "Payment is not confirmed yet. No queue number has been assigned. Please contact the clinic if money was deducted.";
+        }
+      } catch {
+        message.textContent =
+          "Payment status could not be checked. Please contact the clinic before trying to pay again.";
+      }
+    }
+
+    document.getElementById("bookingForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      message.textContent = "";
+      payButton.disabled = true;
+      payButton.textContent = "Creating secure payment…";
+
+      try {
+        const payload = {
+          patientName: document.getElementById("patientName").value.trim(),
+          phone: document.getElementById("phone").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          appointmentDate: dateInput.value
+        };
+
+        const response = await fetch(`${API}/create-order`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.ok ||
+            !result.paymentSessionId || !result.orderId ||
+            result.amount !== 500) {
+          throw new Error(result.error || "Could not create payment order.");
+        }
+
+        const cashfree = Cashfree({ mode: "sandbox" });
+
+        message.textContent =
+          "Opening Cashfree secure checkout for ₹500…";
+
+        await cashfree.checkout({
+          paymentSessionId: result.paymentSessionId,
+          redirectTarget: "_self"
+        });
+      } catch (error) {
+        message.textContent =
+          error.message || "Unable to open checkout. Please try again.";
+        payButton.disabled = false;
+        payButton.textContent = "Proceed to Pay ₹500";
+      }
+    });
+
+    checkReturnedPayment();
+  </script>
+</body>
+</html>
