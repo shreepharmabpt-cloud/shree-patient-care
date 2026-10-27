@@ -75,6 +75,24 @@
       overflow-wrap: anywhere;
     }
 
+    .or-separator {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 12px 0;
+      color: #667085;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .or-separator::before,
+    .or-separator::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #d0d5dd;
+    }
+
     .small {
       color: #5b6474;
       font-size: 13px;
@@ -94,6 +112,12 @@
       font-size: 42px;
       font-weight: bold;
       margin: 8px 0;
+    }
+
+    .patient-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 8px 0 14px;
     }
   </style>
 </head>
@@ -126,6 +150,25 @@
         <option value="Female">Female</option>
         <option value="Other">Other</option>
       </select>
+
+      <label for="age">Age (in years)</label>
+      <input
+        id="age"
+        name="age"
+        type="number"
+        min="0"
+        max="125"
+        step="1"
+        inputmode="numeric"
+        placeholder="Enter age"
+      >
+
+      <div class="or-separator" aria-label="or">OR</div>
+
+      <label for="dob">Date of birth (DOB)</label>
+      <input id="dob" name="dob" type="date">
+
+      <p class="small">You can enter your age or select your date of birth directly. If you enter age, an approximate DOB will be generated.</p>
 
       <label for="phone">Mobile number</label>
       <input
@@ -188,6 +231,57 @@
     dateInput.min = localToday();
     dateInput.value = localToday();
 
+    const ageInput = document.getElementById("age");
+    const dobInput = document.getElementById("dob");
+    const patientNameInput = document.getElementById("patientName");
+
+    function calculateAgeFromDob(dobValue) {
+      if (!dobValue) return "";
+      const dob = new Date(dobValue + "T00:00:00");
+      if (Number.isNaN(dob.getTime())) return "";
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+      return age >= 0 ? age : "";
+    }
+
+    function approximateDobFromAge(ageValue) {
+      if (ageValue === "" || ageValue == null) return "";
+      const age = Number(ageValue);
+      if (!Number.isInteger(age) || age < 0 || age > 125) return "";
+      const year = new Date().getFullYear() - age;
+      const month = 1 + Math.floor(Math.random() * 12);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const day = 1 + Math.floor(Math.random() * daysInMonth);
+      return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    }
+
+    dobInput.addEventListener("change", () => {
+      const age = calculateAgeFromDob(dobInput.value);
+      ageInput.value = age === "" ? "" : String(age);
+    });
+
+    ageInput.addEventListener("input", () => {
+      const dob = approximateDobFromAge(ageInput.value);
+      if (dob) dobInput.value = dob;
+      else if (ageInput.value === "") dobInput.value = "";
+    });
+
+    function titleCaseWords(value) {
+      return value.toLocaleLowerCase().replace(/(^|\\s)([^\\s])/g, (match, space, letter) => space + letter.toLocaleUpperCase());
+    }
+
+    patientNameInput.addEventListener("input", () => {
+      const start = patientNameInput.selectionStart;
+      const end = patientNameInput.selectionEnd;
+      const updated = titleCaseWords(patientNameInput.value);
+      if (updated !== patientNameInput.value) {
+        patientNameInput.value = updated;
+        try { patientNameInput.setSelectionRange(start, end); } catch (_) {}
+      }
+    });
+
     const params = new URLSearchParams(window.location.search);
     const returnedOrderId = params.get("order_id");
 
@@ -219,6 +313,18 @@
       const heading = document.createElement("h2");
       heading.textContent = "Appointment Booking Confirmed!";
 
+      const patientLabel = document.createElement("p");
+      patientLabel.textContent = "Patient Name";
+
+      let savedPatientName = "";
+      try {
+        savedPatientName = JSON.parse(sessionStorage.getItem("spcOnlineBookingPayload") || "{}").patientName || "";
+      } catch (_) {}
+
+      const patientName = document.createElement("div");
+      patientName.className = "patient-name";
+      patientName.textContent = result.patientName || savedPatientName || "Name not provided by server";
+
       const queueLabel = document.createElement("p");
       queueLabel.textContent = "Your Queue Number";
 
@@ -228,6 +334,20 @@
 
       const payment = document.createElement("p");
       payment.textContent = "Payment: ₹500 — Successful";
+
+      // Cashfree's cf_payment_id is the payment/transaction reference returned
+      // by the backend after verifying the successful payment.
+      const cashfreeTransactionId =
+        result.cashfreeTransactionId ||
+        result.cfPaymentId ||
+        result.cf_payment_id ||
+        result.transactionId ||
+        result.paymentId ||
+        "";
+      const transaction = document.createElement("p");
+      transaction.textContent = cashfreeTransactionId
+        ? "Cashfree Transaction ID: " + cashfreeTransactionId
+        : "Cashfree Transaction ID: Not returned by payment server";
 
       const doctor = document.createElement("p");
       doctor.textContent =
@@ -243,9 +363,12 @@
 
       card.append(
         heading,
+        patientLabel,
+        patientName,
         queueLabel,
         queue,
         payment,
+        transaction,
         doctor,
         date,
         note
@@ -318,15 +441,23 @@
 
       try {
         const payload = {
-          patientName: document.getElementById("patientName").value.trim(),
+          patientName: titleCaseWords(patientNameInput.value.trim()),
           gender: document.getElementById("gender").value,
+          age: ageInput.value === "" ? "" : Number(ageInput.value),
+          dob: dobInput.value,
           phone: document.getElementById("phone").value.trim(),
           email: document.getElementById("email").value.trim(),
           appointmentDate: dateInput.value
         };
 
+        try { sessionStorage.setItem("spcOnlineBookingPayload", JSON.stringify(payload)); } catch (_) {}
+
         if (!payload.patientName || !payload.gender || !/^[6-9][0-9]{9}$/.test(payload.phone)) {
           throw new Error("Please enter the patient's full name, gender and a valid 10-digit mobile number.");
+        }
+
+        if (payload.age !== "" && (!Number.isInteger(payload.age) || payload.age < 0 || payload.age > 125)) {
+          throw new Error("Please enter a valid age between 0 and 125.");
         }
 
         const response = await fetch(`${API}/create-order`, {
