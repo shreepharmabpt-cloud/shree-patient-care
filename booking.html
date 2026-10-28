@@ -545,74 +545,61 @@
     }
 
     async function checkReturnedPayment() {
-      if (params.get("payment") !== "return" || !returnedOrderId) {
-        return;
-      }
+      if (params.get("payment") !== "return" || !returnedOrderId) return;
 
       form.hidden = true;
-      showMessage("Checking your payment with Cashfree…");
+      showMessage("Verifying your Cashfree payment… Please wait.");
+      let lastResult = null;
+      let lastError = null;
 
-      try {
-        const response = await fetch(`${API}/verify-payment`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            orderId: returnedOrderId
-          })
-        });
-
-        const result = await response.json();
+      // Cashfree can redirect before the payment status becomes visible to the status API.
+      // Retry verification for a short period instead of immediately showing a false pending result.
+      for (let attempt = 1; attempt <= 6; attempt++) {
         try {
-          if (result.patientCode || result.patientId) sessionStorage.setItem("spcPatientCode", result.patientCode || result.patientId);
-        } catch (_) {}
-
-        if (!response.ok || !result.ok) {
-          makeStatusCard({
-            kind: "pending",
-            icon: "⌛",
-            title: "Payment Not Confirmed Yet",
-            paragraphs: [
-              "Your payment could not be confirmed automatically. Your booking details are shown below for reference.",
-              "Your queue number has not been allotted. SHREE PATIENT CARE will confirm the payment and then allot the queue number."
-            ],
-            orderId: returnedOrderId
+          const response = await fetch(`${API}/verify-payment`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ orderId: returnedOrderId })
           });
-          return;
-        }
+          const result = await response.json();
+          lastResult = result;
+          lastError = null;
 
-        if (
-          result.verified === true &&
-          result.paymentStatus === "SUCCESS"
-        ) {
-          showBookingConfirmation(result);
-        } else {
-          makeStatusCard({
-            kind: "pending",
-            icon: "⌛",
-            title: "Payment Pending / Not Successful",
-            paragraphs: [
-              "The payment system has not confirmed a successful payment. Your details are shown below so you can contact the clinic if needed.",
-              "Your booking request is recorded, but no queue number has been allotted yet."
-            ],
-            orderId: returnedOrderId
-          });
-        }
-      } catch (error) {
-        console.error("Payment verification error:", error);
+          try {
+            if (result.patientCode || result.patientId) {
+              sessionStorage.setItem("spcPatientCode", result.patientCode || result.patientId);
+            }
+          } catch (_) {}
 
-        makeStatusCard({
-          kind: "pending",
-          icon: "⌛",
-          title: "Payment Status Under Review",
-          paragraphs: [
-            "We could not check the payment status right now.",
-            "Your queue number will be allotted only after SHREE PATIENT CARE confirms the payment. Please call us before attempting another payment."
-          ],
-          orderId: returnedOrderId
-        });
+          if (response.ok && result.ok && result.verified === true && result.paymentStatus === "SUCCESS") {
+            showBookingConfirmation(result);
+            return;
+          }
+
+          // Retry only while status is not confirmed. Do not retry invalid/not-found server errors.
+          if (!response.ok || !result.ok) break;
+          if (attempt < 6) {
+            showMessage(`Payment status is updating… checking again (${attempt + 1}/6).`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        } catch (error) {
+          lastError = error;
+          if (attempt < 6) await new Promise(resolve => setTimeout(resolve, 2000));
+        }
       }
+
+      if (lastError) console.error("Payment verification error:", lastError);
+      console.warn("Cashfree payment not confirmed after retries", { orderId: returnedOrderId, result: lastResult });
+      makeStatusCard({
+        kind: "pending",
+        icon: "⌛",
+        title: "Payment Status Under Review",
+        paragraphs: [
+          "Cashfree has not yet returned a confirmed successful payment status. If you completed the test payment, please wait a moment and refresh/check again before attempting another payment.",
+          "Your patient and booking details are retained for reference. A queue number is shown only after the server verifies the payment. If this continues, share the booking reference with SHREE PATIENT CARE so the Worker payment logs can be checked."
+        ],
+        orderId: returnedOrderId
+      });
     }
 
     form.addEventListener("submit", async event => {
