@@ -705,6 +705,8 @@
           title: "Booking Request Received",
           paragraphs: [
             "Your pay-at-counter booking request has been submitted successfully.",
+            `Patient ID: ${result.patientCode || result.patientId || "Created"}`,
+            `Appointment reference: ${result.bookingId || result.orderId || "Created"}`,
             "Payment status: Pay at clinic counter — Not paid yet.",
             "No queue number has been allotted. Please pay at SHREE PATIENT CARE; your queue number will be issued after the clinic confirms payment.",
             "For more details, call 7008-120-706 or visit: Near Mohan Mund Clinic, NH-26, Ambagachhapada, Bhabanipatna."
