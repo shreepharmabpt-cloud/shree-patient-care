@@ -115,6 +115,15 @@
     .status-card p { margin: 8px 0; font-size: 14px; }
     .queue-number { font-size: 46px; font-weight: 900; margin: 7px 0 12px; letter-spacing: 2px; color: #087b4b; }
     .patient-name { font-size: 19px; font-weight: 800; margin: 5px 0 12px; color: var(--navy); }
+    .booking-details { margin: 16px 0; padding: 4px 14px; border: 1px solid #dbe7f5; border-radius: 14px; background: rgba(255,255,255,.86); text-align: left; }
+    .booking-detail-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid #edf1f7; font-size: 13px; }
+    .booking-detail-row:last-child { border-bottom: 0; }
+    .booking-detail-label { color: #65758b; font-weight: 650; flex: 0 0 42%; }
+    .booking-detail-value { color: #172b49; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+    .instruction-panel { margin: 14px 0 4px; padding: 14px; border-radius: 13px; background: #f1f7ff; border: 1px solid #d8e8ff; text-align: left; color: #23466f; }
+    .instruction-panel strong { display: block; margin-bottom: 6px; color: #12315b; }
+    .instruction-panel ul { margin: 7px 0 0; padding-left: 19px; }
+    .instruction-panel li { margin: 5px 0; font-size: 13px; }
     .status-note {
       text-align: left; margin-top: 16px !important; padding: 13px;
       background: rgba(255,255,255,.75); border: 1px solid rgba(120,145,170,.2);
@@ -372,7 +381,7 @@
       message.textContent = text;
     }
 
-    function makeStatusCard({kind = "pending", icon = "!", title, paragraphs = [], orderId = ""}) {
+    function makeStatusCard({kind = "pending", icon = "!", title, paragraphs = [], orderId = "", details = [], instructions = []}) {
       message.replaceChildren();
       const card = document.createElement("div");
       card.className = "status-card " + kind;
@@ -390,6 +399,39 @@
         p.textContent = text;
         card.appendChild(p);
       });
+
+      // Show a consistent, readable patient summary on success, pending, counter and failed states.
+      let savedPayload = {};
+      try { savedPayload = JSON.parse(sessionStorage.getItem("spcOnlineBookingPayload") || "{}"); } catch (_) {}
+      let patientCode = "";
+      try { patientCode = sessionStorage.getItem("spcPatientCode") || ""; } catch (_) {}
+      const summary = details.length ? details : [
+        ["Patient Name", savedPayload.patientName || "Not available"],
+        ["Patient ID", patientCode || "Will be shown if issued"],
+        ["Mobile Number", savedPayload.phone || "Not available"],
+        ["Appointment Date", savedPayload.appointmentDate || "Please confirm with clinic"]
+      ];
+      if (summary.some(item => item[1] && item[1] !== "Not available")) {
+        const detailsBox = document.createElement("div");
+        detailsBox.className = "booking-details";
+        summary.forEach(([label, value]) => {
+          if (!value) return;
+          const row = document.createElement("div");
+          row.className = "booking-detail-row";
+          const key = document.createElement("span"); key.className = "booking-detail-label"; key.textContent = label;
+          const val = document.createElement("span"); val.className = "booking-detail-value"; val.textContent = String(value);
+          row.append(key, val); detailsBox.appendChild(row);
+        });
+        card.appendChild(detailsBox);
+      }
+
+      if (instructions.length) {
+        const panel = document.createElement("div"); panel.className = "instruction-panel";
+        const panelTitle = document.createElement("strong"); panelTitle.textContent = "What to do next"; panel.appendChild(panelTitle);
+        const list = document.createElement("ul");
+        instructions.forEach(item => { const li = document.createElement("li"); li.textContent = item; list.appendChild(li); });
+        panel.appendChild(list); card.appendChild(panel);
+      }
 
       const note = document.createElement("p");
       note.className = "status-note";
@@ -522,14 +564,17 @@
         });
 
         const result = await response.json();
+        try {
+          if (result.patientCode || result.patientId) sessionStorage.setItem("spcPatientCode", result.patientCode || result.patientId);
+        } catch (_) {}
 
         if (!response.ok || !result.ok) {
           makeStatusCard({
             kind: "pending",
             icon: "⌛",
-            title: "Booking Request Received",
+            title: "Payment Not Confirmed Yet",
             paragraphs: [
-              "We could not confirm the payment status automatically.",
+              "Your payment could not be confirmed automatically. Your booking details are shown below for reference.",
               "Your queue number has not been allotted. SHREE PATIENT CARE will confirm the payment and then allot the queue number."
             ],
             orderId: returnedOrderId
@@ -546,9 +591,9 @@
           makeStatusCard({
             kind: "pending",
             icon: "⌛",
-            title: "Booking Request Received",
+            title: "Payment Pending / Not Successful",
             paragraphs: [
-              "Payment is pending or has not been confirmed by the payment system yet.",
+              "The payment system has not confirmed a successful payment. Your details are shown below so you can contact the clinic if needed.",
               "Your booking request is recorded, but no queue number has been allotted yet."
             ],
             orderId: returnedOrderId
@@ -678,6 +723,7 @@
           email: document.getElementById("email").value.trim(),
           appointmentDate: dateInput.value
         };
+        try { sessionStorage.setItem("spcOnlineBookingPayload", JSON.stringify(payload)); } catch (_) {}
 
         if (!payload.patientName || !payload.gender || !/^[6-9][0-9]{9}$/.test(payload.phone)) {
           throw new Error("Please enter the patient's full name, gender and a valid 10-digit mobile number.");
@@ -696,20 +742,33 @@
 
         try {
           sessionStorage.setItem("spcOnlineBookingPayload", JSON.stringify(payload));
+          sessionStorage.setItem("spcPatientCode", result.patientCode || result.patientId || "");
+          sessionStorage.setItem("spcCounterBookingRef", result.bookingId || result.orderId || "");
         } catch (_) {}
 
         form.hidden = true;
         makeStatusCard({
           kind: "pending",
           icon: "⌛",
-          title: "Booking Request Received",
+          title: "Counter Booking Submitted",
           paragraphs: [
-            "Your pay-at-counter booking request has been submitted successfully.",
-            `Patient ID: ${result.patientCode || result.patientId || "Created"}`,
-            `Appointment reference: ${result.bookingId || result.orderId || "Created"}`,
-            "Payment status: Pay at clinic counter — Not paid yet.",
-            "No queue number has been allotted. Please pay at SHREE PATIENT CARE; your queue number will be issued after the clinic confirms payment.",
-            "For more details, call 7008-120-706 or visit: Near Mohan Mund Clinic, NH-26, Ambagachhapada, Bhabanipatna."
+            "Your appointment request has been saved. Please keep these details for your visit.",
+            "Payment status: Pay at clinic counter — Pending."
+          ],
+          details: [
+            ["Patient Name", payload.patientName],
+            ["Patient ID", result.patientCode || result.patientId || "Created — please confirm with clinic"],
+            ["Mobile Number", payload.phone],
+            ["Appointment Date", payload.appointmentDate],
+            ["Doctor", "Dr. Smruti Sikha Sharma"],
+            ["Consultation Fee", "₹500"],
+            ["Booking Reference", result.bookingId || result.orderId || "Created"]
+          ],
+          instructions: [
+            "Visit SHREE PATIENT CARE on your selected appointment date.",
+            "Pay the ₹500 consultation fee at the clinic counter.",
+            "Your queue number will be assigned only after clinic staff confirms payment.",
+            "If you need help, call 7008-120-706."
           ],
           orderId: result.orderId || result.bookingId || ""
         });
