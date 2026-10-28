@@ -243,8 +243,14 @@
       </p>
 
       <button id="payButton" type="submit">
-        Proceed to Pay ₹500
+        Proceed to Pay ₹500 Online
       </button>
+      <button id="counterButton" type="button" style="background:linear-gradient(110deg,#0f9f91,#087f73);box-shadow:0 8px 18px rgba(15,159,145,.18);margin-top:10px;">
+        Pay at Clinic Counter
+      </button>
+      <p class="small" style="text-align:center;margin-top:8px;">
+        Choose “Pay at Clinic Counter” if you prefer to pay in person. Your queue number will be issued only after SHREE PATIENT CARE confirms payment.
+      </p>
     </form>
 
     <div id="message" role="status" aria-live="polite"></div>
@@ -464,6 +470,19 @@
       const payment = document.createElement("p");
       payment.textContent = "Payment: ₹500 — Confirmed";
 
+      const transactionId =
+        result.transactionId ||
+        result.cfPaymentId ||
+        result.cf_payment_id ||
+        result.cashfreeTransactionId ||
+        "";
+      const transaction = document.createElement("p");
+      transaction.textContent = transactionId
+        ? "Transaction ID: " + transactionId
+        : "Transaction ID: Not provided by payment server. Please contact the clinic with your booking reference.";
+      transaction.style.fontWeight = "700";
+      transaction.style.overflowWrap = "anywhere";
+
       const doctor = document.createElement("p");
       doctor.textContent = "Doctor: " + (result.doctorName || "Dr. Smruti Sikha Sharma");
 
@@ -474,7 +493,7 @@
       note.className = "status-note";
       note.textContent = "Please save your queue number. For more details, call 7008-120-706 or visit SHREE PATIENT CARE.";
 
-      card.append(icon, heading, patientLabel, patientName, queueLabel, queue, payment, doctor, date, note);
+      card.append(icon, heading, patientLabel, patientName, queueLabel, queue, payment, transaction, doctor, date, note);
       const contact = document.createElement("a");
       contact.className = "contact-cta";
       contact.href = "tel:7008120706";
@@ -636,6 +655,76 @@
 
         payButton.disabled = false;
         payButton.textContent = "Proceed to Pay ₹500";
+      }
+    });
+
+
+    const counterButton = document.getElementById("counterButton");
+
+    counterButton.addEventListener("click", async () => {
+      if (!form.reportValidity()) return;
+
+      counterButton.disabled = true;
+      payButton.disabled = true;
+      counterButton.textContent = "Submitting booking request…";
+
+      try {
+        const payload = {
+          patientName: titleCaseWords(patientNameInput.value.trim()),
+          gender: document.getElementById("gender").value,
+          age: ageInput.value === "" ? "" : Number(ageInput.value),
+          dob: dobInput.value,
+          phone: document.getElementById("phone").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          appointmentDate: dateInput.value
+        };
+
+        if (!payload.patientName || !payload.gender || !/^[6-9][0-9]{9}$/.test(payload.phone)) {
+          throw new Error("Please enter the patient's full name, gender and a valid 10-digit mobile number.");
+        }
+
+        const response = await fetch(`${API}/book-at-counter`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || "Could not submit pay-at-counter booking.");
+        }
+
+        try {
+          sessionStorage.setItem("spcOnlineBookingPayload", JSON.stringify(payload));
+        } catch (_) {}
+
+        form.hidden = true;
+        makeStatusCard({
+          kind: "pending",
+          icon: "⌛",
+          title: "Booking Request Received",
+          paragraphs: [
+            "Your pay-at-counter booking request has been submitted successfully.",
+            "Payment status: Pay at clinic counter — Not paid yet.",
+            "No queue number has been allotted. Please pay at SHREE PATIENT CARE; your queue number will be issued after the clinic confirms payment.",
+            "For more details, call 7008-120-706 or visit: Near Mohan Mund Clinic, NH-26, Ambagachhapada, Bhabanipatna."
+          ],
+          orderId: result.orderId || result.bookingId || ""
+        });
+      } catch (error) {
+        makeStatusCard({
+          kind: "error",
+          icon: "!",
+          title: "Booking Request Could Not Be Submitted",
+          paragraphs: [
+            error.message || "Please try again or contact SHREE PATIENT CARE.",
+            "Call 7008-120-706 or visit Near Mohan Mund Clinic, NH-26, Ambagachhapada, Bhabanipatna."
+          ]
+        });
+      } finally {
+        counterButton.disabled = false;
+        payButton.disabled = false;
+        counterButton.textContent = "Pay at Clinic Counter";
       }
     });
 
