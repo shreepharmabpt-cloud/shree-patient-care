@@ -521,6 +521,8 @@
         order.textContent = "Booking / Order Reference: " + orderId;
         card.appendChild(order);
       }
+      // Always offer a way back to a fresh booking form, including all error/pending states.
+      addBookAnotherButton(card);
       message.appendChild(card);
     }
 
@@ -849,8 +851,6 @@
           ],
           orderId: result.orderId || result.bookingId || ""
         });
-        const counterStatusCard = message.querySelector(".status-card");
-        if (counterStatusCard) addBookAnotherButton(counterStatusCard);
       } catch (error) {
         makeStatusCard({
           kind: "error",
