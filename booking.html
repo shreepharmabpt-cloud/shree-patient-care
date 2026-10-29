@@ -134,6 +134,13 @@
       background: #fff; color: #1254bd; font-weight: 800; text-decoration: none;
       border: 1px solid #cbdcf2;
     }
+    .book-another-cta {
+      display: block; width: 100%; margin-top: 12px; padding: 14px 16px;
+      border-radius: 12px; background: linear-gradient(110deg, #1769e0, #1254bd);
+      color: #fff; font-size: 15px; font-weight: 800; text-align: center;
+      text-decoration: none; box-shadow: 0 8px 18px rgba(23,105,224,.22);
+    }
+    .book-another-cta:hover { opacity: .94; }
     .footer {
       border-top: 1px solid var(--line); background: #fbfdff;
       padding: 15px 24px; text-align: center; font-size: 12px; color: var(--muted); line-height: 1.6;
@@ -457,6 +464,15 @@
       message.appendChild(card);
     }
 
+    function addBookAnotherButton(card) {
+      const button = document.createElement("a");
+      button.className = "book-another-cta";
+      button.href = window.location.pathname;
+      button.textContent = "+ Book Another Appointment";
+      button.setAttribute("aria-label", "Book another appointment");
+      card.appendChild(button);
+    }
+
     function showBookingConfirmation(result) {
       const queueNumber =
         result.queueLabel ||
@@ -541,6 +557,7 @@
       contact.href = "tel:7008120706";
       contact.textContent = "Call SHREE PATIENT CARE";
       card.appendChild(contact);
+      addBookAnotherButton(card);
       message.appendChild(card);
     }
 
@@ -772,6 +789,8 @@
           ],
           orderId: result.orderId || result.bookingId || ""
         });
+        const counterStatusCard = message.querySelector(".status-card");
+        if (counterStatusCard) addBookAnotherButton(counterStatusCard);
       } catch (error) {
         makeStatusCard({
           kind: "error",
