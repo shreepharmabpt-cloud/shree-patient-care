@@ -434,7 +434,29 @@ document.addEventListener("click",e=>{const list=$("pPhoneOptions");if(list&&!li
  picker.addEventListener('input',()=>{activeIndex=-1;});
  document.addEventListener('click',e=>{if(list&&!list.parentElement.contains(e.target))list.hidden=true;});
 });
-async function editPatientDetails(p){if(!canEditRecord("patient")){alert("You do not have permission to edit patient details.");return;}const fields=[["name","Patient name",p.name||""],["phone","Mobile number",p.phone||""],["address","Address",p.address||""],["dob","Date of birth (YYYY-MM-DD)",p.dob||""],["gender","Gender",p.gender||""],["diabetes","Diabetes status",p.diabetes||""],["history","Medical history / notes",p.history||""]];const changes={};for(const [key,label,value] of fields){const next=prompt("Edit "+label+" (Cancel to stop):",value);if(next===null)return;changes[key]=next.trim();}if(changes.dob&&!/^\d{4}-\d{2}-\d{2}$/.test(changes.dob)){alert("DOB must be YYYY-MM-DD.");return;}if(changes.phone&&!/^\d{10}$/.test(changes.phone.replace(/\D/g,""))){alert("Mobile number should contain 10 digits.");return;}if(changes.phone)changes.phone=changes.phone.replace(/\D/g,"");try{await updateDoc(doc(db,"patients",p.id),changes);const updated={...p,...changes};patients=patients.map(x=>x.id===p.id?updated:x);updateSelects();if($("historyPatient").value===p.id){$("historyPatientPicker").value=patientLabel(updated);await loadPatientHistory();}msg("patientNotice","Patient details updated successfully.","ok");}catch(err){alert("Could not update patient: "+friendly(err));}}
+async function editPatientDetails(p){
+ if(!canEditRecord("patient")){alert("You do not have permission to edit patient details.");return;}
+ const existing=document.getElementById("patientEditModal");if(existing)existing.remove();
+ const overlay=document.createElement("div");overlay.id="patientEditModal";overlay.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(10,25,35,.58);display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto;";
+ const form=document.createElement("form");form.style.cssText="background:#fff;color:#17313b;width:min(680px,100%);max-height:92vh;overflow:auto;border-radius:16px;padding:22px;box-shadow:0 18px 60px rgba(0,0,0,.28);";
+ const heading=document.createElement("h2");heading.textContent="Edit Patient Details";heading.style.cssText="margin:0 0 6px;font-size:22px";form.appendChild(heading);
+ const subtitle=document.createElement("p");subtitle.textContent="Update the patient information below. Patient ID and linked history will remain unchanged.";subtitle.style.cssText="margin:0 0 18px;color:#60717d;font-size:13px";form.appendChild(subtitle);
+ const grid=document.createElement("div");grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:13px";form.appendChild(grid);
+ const specs=[{key:"name",label:"Patient Name",value:p.name||"",required:true},{key:"phone",label:"Mobile Number",value:p.phone||"",type:"tel",required:true},{key:"dob",label:"Date of Birth",value:p.dob||"",type:"date"},{key:"gender",label:"Gender",value:p.gender||"",options:["Male","Female","Other"]},{key:"diabetes",label:"Diabetes Status / Type",value:p.diabetes||"",options:["Not recorded","No known diabetes","Prediabetes","Type 1","Type 2","Gestational diabetes","Other"]},{key:"address",label:"Address",value:p.address||"",wide:true},{key:"history",label:"Medical History / Notes",value:p.history||"",wide:true,textarea:true}];
+ const controls={};
+ for(const f of specs){const wrap=document.createElement("label");wrap.style.cssText="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:650;"+(f.wide?"grid-column:1/-1;":"");wrap.appendChild(document.createTextNode(f.label+(f.required?" *":"")));let input;
+  if(f.options){input=document.createElement("select");const vals=[...new Set([...(f.value?[f.value]:[]),...f.options])];vals.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;input.appendChild(o)});input.value=f.value||f.options[0];}
+  else if(f.textarea){input=document.createElement("textarea");input.rows=4;input.value=f.value;input.placeholder="Relevant medical history or notes";}
+  else{input=document.createElement("input");input.type=f.type||"text";input.value=f.value;if(f.key==="phone")input.inputMode="tel";}
+  input.name=f.key;input.required=!!f.required;input.style.cssText="box-sizing:border-box;width:100%;min-width:0;border:1px solid #cbd8dd;border-radius:9px;padding:10px 11px;font:inherit;font-weight:400;background:#fff;color:#17313b;";wrap.appendChild(input);grid.appendChild(wrap);controls[f.key]=input;
+ }
+ const error=document.createElement("div");error.style.cssText="display:none;color:#b42318;background:#fff0ef;padding:9px 11px;border-radius:8px;margin-top:12px;font-size:13px";form.appendChild(error);
+ const actions=document.createElement("div");actions.style.cssText="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px";form.appendChild(actions);
+ const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Cancel";cancel.className="secondary";cancel.style.cssText="padding:10px 17px;border-radius:9px;cursor:pointer";cancel.onclick=()=>overlay.remove();actions.appendChild(cancel);
+ const save=document.createElement("button");save.type="submit";save.textContent="Save Changes";save.style.cssText="padding:10px 18px;border:0;border-radius:9px;background:#087f70;color:white;font-weight:700;cursor:pointer";actions.appendChild(save);
+ overlay.appendChild(form);overlay.addEventListener("click",e=>{if(e.target===overlay)overlay.remove()});document.addEventListener("keydown",function esc(e){if(e.key==="Escape"&&document.getElementById("patientEditModal")){overlay.remove();document.removeEventListener("keydown",esc)}});document.body.appendChild(overlay);controls.name.focus();
+ form.addEventListener("submit",async e=>{e.preventDefault();error.style.display="none";const changes={};specs.forEach(f=>changes[f.key]=(controls[f.key].value||"").trim());changes.phone=changes.phone.replace(/\D/g,"");if(!changes.name){error.textContent="Patient name is required.";error.style.display="block";return;}if(changes.phone.length!==10){error.textContent="Please enter a valid 10-digit mobile number.";error.style.display="block";controls.phone.focus();return;}if(changes.dob&&!/^\d{4}-\d{2}-\d{2}$/.test(changes.dob)){error.textContent="Please enter a valid date of birth.";error.style.display="block";return;}save.disabled=true;save.textContent="Saving…";try{await updateDoc(doc(db,"patients",p.id),changes);const updated={...p,...changes};patients=patients.map(x=>x.id===p.id?updated:x);updateSelects();overlay.remove();if($("historyPatient")?.value===p.id){$("historyPatientPicker").value=patientLabel(updated);await loadPatientHistory();}if(typeof renderPatients==="function")renderPatients();msg("patientNotice","Patient details updated successfully.","ok");}catch(err){error.textContent="Could not update patient: "+friendly(err);error.style.display="block";save.disabled=false;save.textContent="Save Changes";}});
+}
 function renderPatients(){const el=$("patientList");el.replaceChildren();const term=($("patientSearch").value||"").trim().toLowerCase();const shown=patients.filter(p=>[p.name,p.patientCode,p.id,p.phone].some(v=>String(v||"").toLowerCase().includes(term)));if(!shown.length){el.textContent=term?"No matching patients found.":"No patients found.";return}shown.forEach(p=>{const d=document.createElement("div");d.className="item";const b=document.createElement("b");b.textContent=(p.name||"Unnamed")+(p.patientCode?" · "+p.patientCode:"");d.appendChild(b);const sub=document.createElement("div");sub.className="small";sub.textContent=["Firestore ID: "+p.id,p.phone,p.gender,p.dob?"DOB: "+p.dob:"",p.diabetes].filter(Boolean).join(" · ");d.appendChild(sub);const view=document.createElement("button");view.type="button";view.className="secondary";view.style.marginTop="10px";view.textContent="View full history";view.onclick=()=>{panel("historyPanel");$("historyPatient").value=p.id;$("historyPatientPicker").value=patientLabel(p);if($("historyPatientOptions"))$("historyPatientOptions").hidden=true;loadPatientHistory()};d.appendChild(view);if(canEditRecord("patient")){const editPatient=document.createElement("button");editPatient.type="button";editPatient.className="secondary";editPatient.style.marginTop="10px";editPatient.style.marginLeft="8px";editPatient.textContent="✏️ Edit Patient Details";editPatient.onclick=()=>editPatientDetails(p);d.appendChild(editPatient)}const print=document.createElement("button");print.type="button";print.className="secondary";print.style.marginTop="10px";print.style.marginLeft="8px";print.textContent="🖨️ Print Prescription";print.onclick=()=>showVitalsBeforePrint(p);d.appendChild(print);if(canDeleteRecord()){const del=document.createElement("button");del.type="button";del.className="danger";del.style.marginTop="10px";del.style.marginLeft="8px";del.textContent="🗑️ Delete Patient";del.setAttribute("aria-label","Delete patient "+(p.name||p.id));del.onclick=()=>deletePatient(p);d.appendChild(del)}el.appendChild(d)})}
 async function deletePatient(patient){
  if(!canDeleteRecord()){alert("केवल Admin patient delete कर सकता है।");return;}
@@ -676,6 +698,25 @@ function canEditRecord(kind){
  return profile.role==="admin"||profile.role==="doctor";
 }
 function canDeleteRecord(){return !!profile&&profile.role==="admin";}
+function showAppointmentEditForm(data){
+ return new Promise(resolve=>{
+  const overlay=document.createElement("div");
+  overlay.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:16px;";
+  const modal=document.createElement("form");
+  modal.style.cssText="background:#fff;color:#173042;width:min(520px,100%);max-height:90vh;overflow:auto;border-radius:16px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:grid;gap:12px;";
+  const heading=document.createElement("h2");heading.textContent="Edit Appointment";heading.style.cssText="margin:0 0 4px;font-size:21px;";modal.appendChild(heading);
+  const field=(labelText,name,type,value)=>{const wrap=document.createElement("div");wrap.style.cssText="display:grid;gap:6px;";const label=document.createElement("label");label.textContent=labelText;label.style.cssText="font-weight:600;font-size:14px;";const input=document.createElement("input");input.name=name;input.type=type;input.value=value||"";input.required=name!=="reason";input.style.cssText="width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;background:#fff;color:#173042;";wrap.append(label,input);modal.appendChild(wrap);return input;};
+  const date=field("Appointment Date","appointmentDate","date",String(data.appointmentDate||data.appointmentDay||"").slice(0,10));
+  const buttons=document.createElement("div");buttons.style.cssText="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;";
+  const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Cancel";cancel.style.cssText="padding:10px 16px;border:1px solid #cbd5e1;border-radius:9px;background:#f8fafc;color:#173042;cursor:pointer;";
+  const save=document.createElement("button");save.type="submit";save.textContent="Save Changes";save.style.cssText="padding:10px 16px;border:0;border-radius:9px;background:#087f6e;color:#fff;font-weight:700;cursor:pointer;";
+  buttons.append(cancel,save);modal.appendChild(buttons);overlay.appendChild(modal);document.body.appendChild(overlay);
+  const close=value=>{overlay.remove();resolve(value);};cancel.onclick=()=>close(null);overlay.addEventListener("click",e=>{if(e.target===overlay)close(null)});
+  modal.onsubmit=e=>{e.preventDefault();if(!date.value){date.focus();return}close({appointmentDate:date.value});};
+  document.addEventListener("keydown",function esc(e){if(e.key==="Escape"&&document.body.contains(overlay)){document.removeEventListener("keydown",esc);close(null)}});
+  doctor.focus();
+ });
+}
 async function editRecord(collectionName,id,kind,data){
  if(!canEditRecord(kind)){alert("आपके role को यह record edit करने की अनुमति नहीं है।");return;}
  const fields=kind==="reading"
@@ -684,10 +725,16 @@ async function editRecord(collectionName,id,kind,data){
    ? [["medicineName","Medicine name",data.medicineName||""],["dose","Dose",data.dose||""],["startDate","Start date (YYYY-MM-DD)",data.startDate||""],["endDate","End date (YYYY-MM-DD)",data.endDate||""],["notes","Instructions",data.notes||""]]
    : [["appointmentDate","Appointment date (YYYY-MM-DD)",String(data.appointmentDate||data.appointmentDay||"").slice(0,10)],["doctor","Doctor / clinician",data.doctor||""],["reason","Reason / follow-up notes",data.reason||""]];
  const changes={};
- for(const [key,label,value] of fields){
-  const next=prompt("Edit "+label+" (Cancel to stop):",value);
-  if(next===null)return;
-  changes[key]=next.trim();
+ if(kind==="appointment"){
+  const result=await showAppointmentEditForm(data);
+  if(!result)return;
+  Object.assign(changes,result);
+ }else{
+  for(const [key,label,value] of fields){
+   const next=prompt("Edit "+label+" (Cancel to stop):",value);
+   if(next===null)return;
+   changes[key]=next.trim();
+  }
  }
  if(kind==="medicine"&&changes.startDate&&changes.endDate&&changes.endDate<changes.startDate){alert("End date cannot be earlier than start date.");return;}
  try{
@@ -702,12 +749,10 @@ async function editRecord(collectionName,id,kind,data){
    }else{
     const oldDay=String(data.appointmentDay||data.appointmentDate||"").slice(0,10);
     const newDay=changes.appointmentDay;
-    const oldDoctor=String(data.doctor||"").trim().toLowerCase();
-    const newDoctor=String(changes.doctor||data.doctor||"").trim().toLowerCase();
-    const dateOrDoctorChanged=oldDay!==newDay||oldDoctor!==newDoctor;
+    const dateChanged=oldDay!==newDay;
     const hasValidQueue=typeof data.queueNumber==="number"&&data.queueNumber>=1;
-    if(dateOrDoctorChanged||!hasValidQueue){
-     changes.queueNumber=await nextQueueNumber(newDay,changes.doctor||data.doctor,id);
+    if(dateChanged||!hasValidQueue){
+     changes.queueNumber=await nextQueueNumber(newDay,data.doctor,id);
     }else{
      changes.queueNumber=data.queueNumber;
     }
@@ -1194,6 +1239,31 @@ $("printHistory").onclick=()=>{
   .section h3 { margin: 0 0 3px !important; }
   .rx td { height: 34px !important; padding: 3px 5px !important; }
   .rx th { padding: 4px 5px !important; }
+}
+
+/* Patient Registration buttons: clear red accent requested by user */
+.nav button[data-panel="patientsPanel"]{background:linear-gradient(135deg,#e53935,#b71c1c)!important;color:#fff!important;border:1px solid #b71c1c!important;box-shadow:0 3px 9px rgba(183,28,28,.20)!important}
+.nav button[data-panel="patientsPanel"]:hover{filter:brightness(1.06);box-shadow:0 4px 12px rgba(183,28,28,.26)!important}
+.dash-quicklink[data-panel="patientsPanel"]{border-color:#ef9a9a;background:#fff5f5;color:#b71c1c}
+.dash-quicklink[data-panel="patientsPanel"] span{color:#9f3636}
+#patientForm button[type="submit"]{background:linear-gradient(135deg,#e53935,#b71c1c)!important;color:#fff!important;box-shadow:0 3px 9px rgba(183,28,28,.20)!important}
+
+/* Force the Patient Registration navigation button to be red */
+.nav button[data-panel="patientsPanel"] {
+  background: #c62828 !important;
+  background-image: linear-gradient(135deg, #ef4444, #b91c1c) !important;
+  color: #ffffff !important;
+  border: 1px solid #991b1b !important;
+  font-weight: 800 !important;
+  box-shadow: 0 3px 10px rgba(185, 28, 28, 0.28) !important;
+}
+.nav button[data-panel="patientsPanel"]:hover,
+.nav button[data-panel="patientsPanel"]:focus-visible {
+  background: #b91c1c !important;
+  background-image: linear-gradient(135deg, #dc2626, #991b1b) !important;
+  color: #ffffff !important;
+  outline: 2px solid #fecaca;
+  outline-offset: 2px;
 }
 </style>`;
  w.document.open();
