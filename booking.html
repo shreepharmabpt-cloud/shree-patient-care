@@ -156,7 +156,21 @@
       .fee { font-size: 15px; }
       .footer { padding: 14px 17px; }
     }
-  </style>
+  
+    .booking-calendar{margin-top:8px;padding:14px;border:1px solid #d8e6e9;border-radius:14px;background:#fff;box-shadow:0 10px 28px rgba(16,54,68,.12)}
+    .booking-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+    .booking-calendar-head button{width:38px;height:36px;padding:0;border:1px solid #d6e2e6;background:#f7fafb;color:#163746;border-radius:9px;font-size:24px;line-height:1;box-shadow:none}
+    .booking-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;text-align:center}
+    .booking-calendar-weekdays{margin-bottom:6px;color:#667b85;font-size:12px;font-weight:700}
+    .booking-calendar-day{min-height:38px;border:1px solid #e0e8eb;border-radius:9px;background:#f1f4f5;color:#a2adb2;font:600 13px inherit;padding:4px 0;box-shadow:none}
+    .booking-calendar-day.available{background:#e4f8f2;color:#087f73;border-color:#8ed9c7;cursor:pointer}
+    .booking-calendar-day.available:hover,.booking-calendar-day.available:focus{background:#0f9f91;color:white;border-color:#0f9f91}
+    .booking-calendar-day.selected{background:#087f8c!important;color:#fff!important;border-color:#087f8c!important}
+    .booking-calendar-day.empty{visibility:hidden}
+    .booking-calendar-day:disabled{cursor:not-allowed;opacity:1}
+    #appointmentDate{cursor:pointer;background-color:#fff}
+
+</style>
 
 </head>
 
@@ -251,7 +265,13 @@
       >
 
       <label for="appointmentDate">Preferred appointment date</label>
-      <input id="appointmentDate" name="appointmentDate" type="date" required>
+      <input id="appointmentDate" name="appointmentDate" type="text" inputmode="none" placeholder="Select an available appointment date" autocomplete="off" readonly required aria-haspopup="dialog" aria-expanded="false">
+      <div id="bookingCalendar" class="booking-calendar" hidden role="dialog" aria-label="Choose available appointment date">
+        <div class="booking-calendar-head"><button type="button" id="calendarPrev" aria-label="Previous month">‹</button><strong id="calendarMonthLabel"></strong><button type="button" id="calendarNext" aria-label="Next month">›</button></div>
+        <div class="booking-calendar-grid booking-calendar-weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+        <div id="bookingCalendarDays" class="booking-calendar-grid"></div>
+        <p id="bookingCalendarHint" class="small">Only dates enabled by SHREE PATIENT CARE are selectable.</p>
+      </div>
 
       <p class="small">
         Please check your details carefully. Your booking request will be recorded.
@@ -304,6 +324,7 @@
     });
 
     form.addEventListener("submit", (event) => {
+      if (!selectedBookingDateIsAvailable()) { event.preventDefault(); event.stopImmediatePropagation(); return; }
       const cleaned = phoneInput.value.replace(/[^0-9]/g, "").slice(0, 10);
       phoneInput.value = cleaned;
       if (!/^[0-9]{10}$/.test(cleaned)) {
@@ -327,8 +348,47 @@
       );
     }
 
-    dateInput.min = localToday();
-    dateInput.value = localToday();
+    // Calendar dates come from the admin-managed Firestore setting via the booking API.
+    let availableBookingDates = new Set();
+    let calendarMonth = new Date(); calendarMonth.setDate(1);
+    const calendar = document.getElementById("bookingCalendar");
+    const calendarDays = document.getElementById("bookingCalendarDays");
+    const calendarMonthLabel = document.getElementById("calendarMonthLabel");
+    const calendarHint = document.getElementById("bookingCalendarHint");
+    const pad2 = n => String(n).padStart(2,"0");
+    function dateKeyFromParts(y,m,d){return `${y}-${pad2(m)}-${pad2(d)}`;}
+    function renderBookingCalendar(){
+      calendarDays.replaceChildren();
+      calendarMonthLabel.textContent=calendarMonth.toLocaleDateString("en-IN",{month:"long",year:"numeric"});
+      const y=calendarMonth.getFullYear(),m=calendarMonth.getMonth();
+      const firstDay=new Date(y,m,1).getDay(),daysInMonth=new Date(y,m+1,0).getDate(),today=localToday();
+      for(let i=0;i<firstDay;i++){const blank=document.createElement("button");blank.type="button";blank.className="booking-calendar-day empty";blank.disabled=true;blank.tabIndex=-1;calendarDays.appendChild(blank);}
+      for(let d=1;d<=daysInMonth;d++){
+        const key=dateKeyFromParts(y,m+1,d),btn=document.createElement("button");btn.type="button";btn.className="booking-calendar-day";btn.textContent=String(d);
+        const available=availableBookingDates.has(key)&&key>=today;
+        if(available){btn.classList.add("available");if(dateInput.value===key)btn.classList.add("selected");btn.disabled=false;btn.setAttribute("aria-label",`Available ${key}`);btn.addEventListener("click",()=>{dateInput.value=key;dateInput.dispatchEvent(new Event("change",{bubbles:true}));calendar.hidden=true;dateInput.setAttribute("aria-expanded","false");calendarHint.textContent="Only dates enabled by SHREE PATIENT CARE are selectable.";});}
+        else{btn.disabled=true;btn.setAttribute("aria-label",`${key} unavailable`);}
+        calendarDays.appendChild(btn);
+      }
+      const count=[...availableBookingDates].filter(d=>d>=today&&d.startsWith(`${y}-${pad2(m+1)}-`)).length;
+      calendarHint.textContent=count?`${count} available date${count===1?"":"s"} this month. Grey dates cannot be selected.`:"No available booking dates in this month. Grey dates cannot be selected.";
+      document.getElementById("calendarPrev").disabled=(y===new Date().getFullYear()&&m===new Date().getMonth());
+      document.getElementById("calendarNext").disabled=!([...availableBookingDates].some(d=>d>=today&&d>dateKeyFromParts(y,m+1,daysInMonth)));
+    }
+    async function loadAvailableBookingDates(){
+      dateInput.disabled=true;dateInput.placeholder="Loading available dates…";
+      try{const response=await fetch(`${API}/available-dates`,{method:"GET"});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Could not load available dates");availableBookingDates=new Set(Array.isArray(result.availableDates)?result.availableDates:[]);calendarMonth=new Date();calendarMonth.setDate(1);renderBookingCalendar();dateInput.disabled=false;dateInput.placeholder=availableBookingDates.size?"Select an available appointment date":"No dates available yet — please check again later";if(!availableBookingDates.size)calendarHint.textContent="The clinic has not opened any booking dates yet. Please try again later.";}
+      catch(error){dateInput.disabled=true;dateInput.placeholder="Unable to load available dates";calendarHint.textContent="Could not load the clinic's available dates. Refresh the page or contact the clinic.";console.error("Available dates load failed",error);}
+    }
+    dateInput.value="";dateInput.addEventListener("click",()=>{if(dateInput.disabled)return;calendar.hidden=!calendar.hidden;dateInput.setAttribute("aria-expanded",String(!calendar.hidden));if(!calendar.hidden)renderBookingCalendar();});
+    document.getElementById("calendarPrev").addEventListener("click",()=>{const now=new Date();now.setDate(1);if(calendarMonth>now){calendarMonth.setMonth(calendarMonth.getMonth()-1);renderBookingCalendar();}});
+    document.getElementById("calendarNext").addEventListener("click",()=>{const last=calendarMonth.getFullYear()+"-"+pad2(calendarMonth.getMonth()+1)+"-31";if([...availableBookingDates].some(d=>d>=localToday()&&d>last)){calendarMonth.setMonth(calendarMonth.getMonth()+1);renderBookingCalendar();}});
+    document.addEventListener("click",e=>{if(!calendar.hidden&&!calendar.contains(e.target)&&e.target!==dateInput){calendar.hidden=true;dateInput.setAttribute("aria-expanded","false");}});
+    loadAvailableBookingDates();
+
+    function selectedBookingDateIsAvailable(){const selected=String(dateInput.value||"").slice(0,10);if(!selected||!availableBookingDates.has(selected)||selected<localToday()){dateInput.setCustomValidity("Please select a date enabled by SHREE PATIENT CARE.");dateInput.reportValidity();return false;}dateInput.setCustomValidity("");return true;}
+    dateInput.addEventListener("change",()=>{dateInput.setCustomValidity("");});
+
 
     const ageInput = document.getElementById("age");
     const dobInput = document.getElementById("dob");
@@ -724,7 +784,7 @@
     const counterButton = document.getElementById("counterButton");
 
     counterButton.addEventListener("click", async () => {
-      if (!form.reportValidity()) return;
+      if (!form.reportValidity() || !selectedBookingDateIsAvailable()) return;
 
       counterButton.disabled = true;
       payButton.disabled = true;
