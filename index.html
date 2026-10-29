@@ -239,7 +239,7 @@ header:after{pointer-events:none}
   <article class="stat-card" style="--accent:#7c3aed;--tint:#f1eaff"><div class="stat-top"><span class="stat-icon">▦</span><span class="pill">This month</span></div><div class="stat-label">Patients This Month</div><div class="stat-value" id="statMonth">—</div><div class="stat-note">Appointments in the current calendar month</div></article>
   <article class="stat-card" style="--accent:#0f8b57;--tint:#e5f8ed"><div class="stat-top"><span class="stat-icon">◎</span><span class="pill">Registered</span></div><div class="stat-label">Total Registered Patients</div><div class="stat-value" id="statPatients">—</div><div class="stat-note">All patient records accessible to this account</div></article>
   <article class="stat-card" style="--accent:#0f766e;--tint:#e0f7f3"><div class="stat-top"><span class="stat-icon">✓</span><span class="pill">Fees</span></div><div class="stat-label">Fees Paid Appointments</div><div class="stat-value" id="statPaid">—</div><div class="stat-note">All appointment records marked paid</div></article>
-  <article class="stat-card" style="--accent:#dc2626;--tint:#fff0f0"><div class="stat-top"><span class="stat-icon">₹</span><span class="pill">Pending</span></div><div class="stat-label">Fees Pending</div><div class="stat-value" id="statPending">—</div><div class="stat-note">Appointments awaiting fee payment</div></article>
+  <article class="stat-card" id="pendingFeesStatCard" role="button" tabindex="0" aria-label="Show today’s appointments with fees pending" title="Click to view today’s fee-pending appointments" style="--accent:#dc2626;--tint:#fff0f0;cursor:pointer"><div class="stat-top"><span class="stat-icon">₹</span><span class="pill">Pending</span></div><div class="stat-label">Fees Pending</div><div class="stat-value" id="statPending">—</div><div class="stat-note">Click to view today’s fee-pending appointments</div></article>
   <article class="stat-card" style="--accent:#c2410c;--tint:#fff1e8"><div class="stat-top"><span class="stat-icon">◷</span><span class="pill">Today</span></div><div class="stat-label">Today's Fees Paid</div><div class="stat-value" id="statTodayPaid">—</div><div class="stat-note">Today's appointments marked paid</div></article>
   <article class="stat-card" style="--accent:#64748b;--tint:#edf2f7"><div class="stat-top"><span class="stat-icon">↗</span><span class="pill">Activity</span></div><div class="stat-label">Appointments Overall</div><div class="stat-value" id="statAppointments">—</div><div class="stat-note">All appointment records accessible to this account</div></article>
  </div>
@@ -247,7 +247,7 @@ header:after{pointer-events:none}
  <div class="dash-panels"><div class="dash-box"><h3>Appointments — Last 6 Months</h3><p class="dash-subtitle">Monthly appointment volume</p><div id="dashboardMonthlyChart" class="bar-chart" aria-label="Appointments over the last six months"><p class="small">Loading chart…</p></div><p class="dash-footnote">Counts are based on appointment dates, not patient registration dates.</p></div><div class="dash-box"><h3>Today's Patients by Doctor</h3><p class="dash-subtitle">Appointment distribution for today</p><div id="dashboardDoctorChart" class="dash-list"><p class="small">Loading chart…</p></div><p class="dash-footnote" id="dashboardUpdatedAt">Auto-refreshes every 30 seconds · Last refreshed time shown above.</p></div></div>
  <div id="dashboardNotice" class="status"></div>
 </section>
-<section id="patientsPanel" class="card panel"><h2>1. Patient Registration & Patient List</h2><form id="patientForm"><div class="row"><div><label>Full name *</label><input id="pName" maxlength="100" required></div><div><label>Mobile number *</label><input id="pPhone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" pattern="[0-9]{10}" title="Enter exactly 10 digits" required></div><div><label>Date of birth</label><input id="pDob" type="date"></div><div><label>Age (years)</label><input id="pAge" type="number" min="0" max="125" step="1" inputmode="numeric" placeholder="Enter age if DOB unknown"></div><div><label>Gender</label><select id="pGender"><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option><option>Prefer not to say</option></select></div><div><label>Address</label><textarea id="pAddress"></textarea></div><div><label>Weight (kg)</label><input id="pWeight" type="number" min="0" max="500" step="0.1" inputmode="decimal" placeholder="e.g. 70"></div><div><label>Blood pressure (mmHg)</label><input id="pBP" maxlength="20" placeholder="e.g. 120/80"></div><div><label>Doctor / Clinician *</label><select id="pDoctor" required><option value="">Select doctor</option><option>Dr. Satyanarayan Behera</option><option>Dr. Krushnasis Dash</option><option>Dr. Alok Kumar Meher</option><option>Dr. Subhalaxmi Mahapatra</option><option>Dr. Chittaranjan Barik</option><option>Other / To be specified</option></select></div><div><label>Appointment Date *</label><input id="pAppointmentDate" type="date" required></div><div><label>Consultation Fees *</label><select id="pFeeStatus" required><option value="Pending">Fees Pending</option><option value="Paid">Fees Paid</option></select></div><div><label>Diabetes status/type</label><select id="pDiabetes"><option value="">Not recorded</option><option>Type 1</option><option>Type 2</option><option>Gestational</option><option>Prediabetes</option><option>Under evaluation</option><option>No known diabetes</option></select></div></div><label>Relevant history / notes</label><textarea id="pHistory"></textarea><div class="nav"><button type="submit">Save Patient</button><button id="printPatientPrescription" type="button" class="secondary" hidden>🖨️ Print Prescription</button></div></form><p class="small" role="note">Duplicate check: before saving, the app checks whether this mobile number already exists. Shared family numbers may be allowed after confirmation.</p><div id="patientNotice" class="status"></div>
+<section id="patientsPanel" class="card panel"><h2>1. Patient Registration & Patient List</h2><form id="patientForm"><div class="row"><div><label>Full name *</label><input id="pName" maxlength="100" required></div><div><label>Mobile number * · search existing patients</label><div class="patient-picker-wrap"><input id="pPhone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" pattern="[0-9]{10}" title="Enter exactly 10 digits" placeholder="Enter 10-digit mobile number" required><div id="pPhoneOptions" class="patient-suggestions" hidden></div></div><p class="small" id="pPhoneHint">Enter a mobile number to find existing patients. You can also register another family member with the same number.</p></div><div><label>Date of birth</label><input id="pDob" type="date"></div><div><label>Age (years)</label><input id="pAge" type="number" min="0" max="125" step="1" inputmode="numeric" placeholder="Enter age if DOB unknown"></div><div><label>Gender</label><select id="pGender"><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option><option>Prefer not to say</option></select></div><div><label>Address</label><textarea id="pAddress"></textarea></div><div><label>Weight (kg)</label><input id="pWeight" type="number" min="0" max="500" step="0.1" inputmode="decimal" placeholder="e.g. 70"></div><div><label>Blood pressure (mmHg)</label><input id="pBP" maxlength="20" placeholder="e.g. 120/80"></div><div><label>Doctor / Clinician *</label><select id="pDoctor" required><option value="">Select doctor</option><option>Dr. Satyanarayan Behera</option><option>Dr. Krushnasis Dash</option><option>Dr. Alok Kumar Meher</option><option>Dr. Subhalaxmi Mahapatra</option><option>Dr. Chittaranjan Barik</option><option>Other / To be specified</option></select></div><div><label>Appointment Date *</label><input id="pAppointmentDate" type="date" required></div><div><label>Consultation Fees *</label><select id="pFeeStatus" required><option value="Pending">Fees Pending</option><option value="Paid">Fees Paid</option></select></div><div><label>Diabetes status/type</label><select id="pDiabetes"><option value="">Not recorded</option><option>Type 1</option><option>Type 2</option><option>Gestational</option><option>Prediabetes</option><option>Under evaluation</option><option>No known diabetes</option></select></div></div><label>Relevant history / notes</label><textarea id="pHistory"></textarea><div class="nav"><button type="submit">Save Patient</button><button id="printPatientPrescription" type="button" class="secondary" hidden>🖨️ Print Prescription</button></div></form><p class="small" role="note">Duplicate check: before saving, the app checks whether this mobile number already exists. Shared family numbers may be allowed after confirmation.</p><div id="patientNotice" class="status"></div>
 <section class="card" id="patientListSection" style="margin-top:22px"><h3>👥 Patient List & Search</h3><p class="small">Search saved patient records by name, Patient ID, or mobile number. Admin can delete a patient profile from the patient card.</p><label for="patientSearch">Search patients</label><input id="patientSearch" type="search" placeholder="Enter name, SPC ID, or mobile number"><div class="nav"><button id="refreshPatients" class="secondary" type="button">Refresh patient list</button><button id="exportPatients" class="secondary" type="button">Export Patients CSV</button></div><div id="patientList"><p class="small">Loading patient list…</p></div></section></section>
 <section id="readingPanel" class="card panel" hidden><h2>2. Diabetes Readings</h2><p class="small">Record measurements only; this form does not diagnose or recommend treatment.</p><form id="readingForm"><label for="readingPatientPicker">Select patient · search name, mobile, or Patient ID *</label><div class="patient-picker-wrap"><input id="readingPatientPicker" type="text" placeholder="Type patient name, mobile, or SPC ID…" autocomplete="off" required><div id="readingPatientOptions" class="patient-suggestions" hidden></div></div><select id="readingPatient" hidden><option value="">Select patient</option></select><div class="row"><div><label>Reading type *</label><select id="rType" required><option value="">Select</option><option>FBS</option><option>PPBS</option><option>RBS</option><option>HbA1c</option><option>Blood Pressure</option><option>Weight</option></select></div><div><label>Value with units *</label><input id="rValue" placeholder="e.g. 126 mg/dL" required></div><div><label>Date/time *</label><input id="rDate" type="datetime-local" required></div></div><label>Notes</label><textarea id="rNotes"></textarea><button>Save Reading</button></form><div id="readingNotice" class="status"></div><section class="card"><h2>Export Diabetes Readings</h2><p class="small">Download records currently stored in Firestore as CSV files. CSV files may contain sensitive medical data; store them securely.</p><button id="exportReadings" class="secondary" type="button">Export Readings CSV</button><div id="exportNotice" class="status"></div></section></section>
 <section id="medicinePanel" class="card panel" hidden><h2>3. Medicine Records</h2><form id="medicineForm"><label for="mPatientPicker">Select patient · search name, mobile, or Patient ID *</label><div class="patient-picker-wrap"><input id="mPatientPicker" type="text" placeholder="Type patient name, mobile, or SPC ID…" autocomplete="off" required><div id="mPatientOptions" class="patient-suggestions" hidden></div></div><select id="mPatient" hidden><option value="">Select patient</option></select><div class="row"><div><label>Medicine name *</label><input id="mName" maxlength="150" required></div><div><label>Prescribed dose</label><input id="mDose" maxlength="150" placeholder="As prescribed"></div><div><label>Start date</label><input id="mStart" type="date"></div><div><label>End date</label><input id="mEnd" type="date"></div></div><label>Prescriber / instructions</label><textarea id="mNotes" maxlength="2000"></textarea><button>Save Medicine Record</button></form><div id="medicineNotice" class="status"></div><h3>Recent medicine records</h3><div class="nav"><button id="refreshMedicines" class="secondary" type="button">Refresh records</button><button id="exportMedicines" class="secondary" type="button">Export Medicines CSV</button></div><div id="medicineList"></div></section>
@@ -291,6 +291,8 @@ function panel(id){document.querySelectorAll(".panel").forEach(p=>p.hidden=p.id!
 document.querySelectorAll("[data-panel]").forEach(b=>b.onclick=()=>panel(b.dataset.panel));
 const doctorStatCard=$("doctorStatCard");if(doctorStatCard){const openDoctors=()=>{if(profile?.role!=="admin")return;panel("doctorsPanel");window.scrollTo({top:0,behavior:"smooth"})};doctorStatCard.addEventListener("click",openDoctors);doctorStatCard.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openDoctors()}})}
 async function openTodaysAppointments(){panel("appointmentsPanel");const filter=$("appointmentDateFilter");if(filter)filter.value=localDateKey();await loadAppointments();}
+async function openTodayPendingAppointments(){panel("appointmentsPanel");const dateFilter=$("appointmentDateFilter"),feeFilter=$("appointmentFeeFilter"),doctorFilter=$("appointmentDoctorFilter");if(dateFilter)dateFilter.value=localDateKey();if(feeFilter)feeFilter.value="Pending";if(doctorFilter)doctorFilter.value="";await loadAppointments();const list=$("appointmentList");if(list)list.scrollIntoView({behavior:"smooth",block:"start"});}
+const pendingFeesStatCard=$("pendingFeesStatCard");if(pendingFeesStatCard){pendingFeesStatCard.addEventListener("click",openTodayPendingAppointments);pendingFeesStatCard.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openTodayPendingAppointments();}})}
 const patientsTodayCard=$("patientsTodayCard");if(patientsTodayCard){patientsTodayCard.addEventListener("click",openTodaysAppointments);patientsTodayCard.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openTodaysAppointments();}})}
 $("loginForm").onsubmit=async e=>{e.preventDefault();clear("loginNotice");try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(x){msg("loginNotice",friendly(x))}};
 $("logout").onclick=()=>signOut(auth);
@@ -306,15 +308,82 @@ function populatePatientSelect(id, pickerId, listId){
 }
 function renderPatientSuggestions(pickerId,selectId,listId){
  const picker=$(pickerId),select=$(selectId),list=$(listId);if(!picker||!select||!list)return;
- const term=picker.value.trim().toLocaleLowerCase();select.value='';list.replaceChildren();
+ const rawTerm=picker.value.trim(),term=rawTerm.toLocaleLowerCase(),digits=rawTerm.replace(/\D/g,'');
+ select.value='';list.replaceChildren();
  if(!term){list.hidden=true;return;}
- const matches=patients.filter(p=>[p.name,p.patientCode,p.id,p.phone].some(v=>String(v||'').toLocaleLowerCase().includes(term))).slice(0,50);
- if(!matches.length){const empty=document.createElement('div');empty.className='patient-no-results';empty.textContent='No matching patients found';list.appendChild(empty);list.hidden=false;return;}
- matches.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='patient-suggestion';b.textContent=patientLabel(p);const small=document.createElement('small');small.textContent='Patient ID: '+(p.patientCode||p.id)+(p.phone?' · Mobile: '+p.phone:'');b.appendChild(small);const choose=e=>{if(e)e.preventDefault();const alreadySelected=select.value===p.id;select.value=p.id;picker.value=patientLabel(p);list.hidden=true;select.dispatchEvent(new Event('change',{bubbles:true}));if(selectId==='historyPatient'&&!alreadySelected)loadPatientHistory();};b.addEventListener('pointerdown',choose);b.addEventListener('click',choose);list.appendChild(b);});list.hidden=false;
+ const matches=patients.filter(p=>{
+  const phone=String(p.phone||'').replace(/\D/g,'');
+  const phoneMatch=digits.length>=4&&!!phone&&(phone===digits||phone.endsWith(digits)||digits.endsWith(phone));
+  return phoneMatch||[p.name,p.patientCode,p.id,p.phone].some(v=>String(v||'').toLocaleLowerCase().includes(term));
+ }).slice(0,50);
+ if(!matches.length){const empty=document.createElement('div');empty.className='patient-no-results';empty.textContent='No matching patients found';list.appendChild(empty);}
+ matches.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='patient-suggestion';b.textContent=patientLabel(p);const small=document.createElement('small');small.textContent='SPC ID: '+(p.patientCode||p.id)+(p.gender?' · '+p.gender:'')+(p.age!==undefined&&p.age!==''?' · Age: '+p.age:'')+(p.phone?' · Mobile: '+p.phone:'');b.appendChild(small);const choose=e=>{if(e)e.preventDefault();const alreadySelected=select.value===p.id;select.value=p.id;picker.value=patientLabel(p);list.hidden=true;select.dispatchEvent(new Event('change',{bubbles:true}));if(selectId==='historyPatient'&&!alreadySelected)loadPatientHistory();};b.addEventListener('pointerdown',choose);b.addEventListener('click',choose);list.appendChild(b);});
+ if(selectId==='aPatient'){
+  const add=document.createElement('button');add.type='button';add.className='patient-suggestion';add.style.borderTop='1px solid #d7e2e4';add.textContent='＋ Add New Patient with this Mobile Number';
+  const detail=document.createElement('small');detail.textContent='Register a different family member; a new SPC ID will be created.';add.appendChild(detail);
+  add.addEventListener('pointerdown',e=>{e.preventDefault();openNewPatientFromAppointment(rawTerm)});add.addEventListener('click',e=>{e.preventDefault();openNewPatientFromAppointment(rawTerm)});list.appendChild(add);
+ }
+ list.hidden=false;
 }
 function updateSelects(){
  [["readingPatient","readingPatientPicker","readingPatientOptions"],["mPatient","mPatientPicker","mPatientOptions"],["aPatient","aPatientPicker","aPatientOptions"],["historyPatient","historyPatientPicker","historyPatientOptions"]].forEach(args=>populatePatientSelect(...args));
 }
+
+// Mobile-number patient matching for Patient Registration. Existing patient selection
+// reuses the original Firestore document/SPC ID; "Add New" deliberately creates a separate person.
+let selectedRegistrationPatientId="";
+function setPatientField(id,value){const el=$(id);if(el)el.value=value==null?"":String(value);}
+function fillRegistrationFromPatient(p){
+ selectedRegistrationPatientId=p.id;
+ setPatientField("pName",p.name);setPatientField("pDob",p.dob);setPatientField("pAge",p.age!==undefined&&p.age!==""?p.age:calculateAgeFromDob(p.dob));
+ setPatientField("pGender",p.gender);setPatientField("pAddress",p.address);setPatientField("pWeight",p.weight);setPatientField("pBP",p.bloodPressure);
+ setPatientField("pDoctor",p.doctor);setPatientField("pDiabetes",p.diabetes);setPatientField("pHistory",p.history);
+ $("pPhone").value=String(p.phone||"").replace(/\D/g,"").slice(-10);
+ $("pPhoneOptions").hidden=true;
+ $("pPhoneHint").textContent="Existing patient selected: "+(p.name||"Unnamed patient")+" · SPC ID "+(p.patientCode||p.id)+". Saving this form will book an appointment for this patient without creating a duplicate record.";
+ $("patientNotice").textContent="";
+}
+function startNewRegistrationWithPhone(phone){
+ selectedRegistrationPatientId="";
+ const keep=String(phone||$("pPhone").value||"").replace(/\D/g,"").slice(-10);
+ $("patientForm").reset();
+ $("pPhone").value=keep;
+ $("pAppointmentDate").value=$("aDate")?.value||localDateISO();
+ if($("aDoctor")?.value)$("pDoctor").value=$("aDoctor").value;
+ if($("aFeeStatus")?.value)$("pFeeStatus").value=$("aFeeStatus").value;
+ $("pPhoneOptions").hidden=true;
+ $("pPhoneHint").textContent="New patient mode: this person will receive a new unique SPC ID, even if the mobile number is shared with another family member.";
+ clear("patientNotice");
+}
+function openNewPatientFromAppointment(phone){
+ startNewRegistrationWithPhone(phone);
+ panel("patientsPanel");
+ $("pName").focus();
+}
+function renderRegistrationPhoneMatches(){
+ const input=$("pPhone"),list=$("pPhoneOptions");if(!input||!list)return;
+ const raw=input.value.trim(),digits=raw.replace(/\D/g,"");
+ list.replaceChildren();
+ if(selectedRegistrationPatientId){
+  const selected=patients.find(p=>p.id===selectedRegistrationPatientId);
+  if(selected&&String(selected.phone||"").replace(/\D/g,"").slice(-10)!==digits)selectedRegistrationPatientId="";
+ }
+ if(digits.length<4){list.hidden=true;return;}
+ const matches=patients.filter(p=>{const phone=String(p.phone||"").replace(/\D/g,"");return !!phone&&(phone===digits||phone.endsWith(digits)||digits.endsWith(phone));}).slice(0,50);
+ if(!matches.length){const empty=document.createElement("div");empty.className="patient-no-results";empty.textContent="No existing patient found for this mobile number.";list.appendChild(empty);}
+ matches.forEach(p=>{
+  const b=document.createElement("button");b.type="button";b.className="patient-suggestion";b.textContent=(p.name||"Unnamed patient")+" · "+(p.patientCode||p.id);
+  const small=document.createElement("small");small.textContent=[p.gender||"",p.age!==undefined&&p.age!==""?"Age: "+p.age:"","Mobile: "+(p.phone||"")].filter(Boolean).join(" · ");b.appendChild(small);
+  const choose=e=>{e.preventDefault();fillRegistrationFromPatient(p);};
+  b.addEventListener("pointerdown",choose);b.addEventListener("click",choose);list.appendChild(b);
+ });
+ const add=document.createElement("button");add.type="button";add.className="patient-suggestion";add.style.borderTop="1px solid #d7e2e4";add.textContent="＋ Add New Patient with Same Number";
+ const detail=document.createElement("small");detail.textContent="For another family member or a different person. A new SPC ID will be assigned.";add.appendChild(detail);
+ add.addEventListener("pointerdown",e=>{e.preventDefault();startNewRegistrationWithPhone(digits);});add.addEventListener("click",e=>{e.preventDefault();startNewRegistrationWithPhone(digits);});
+ list.appendChild(add);list.hidden=false;
+}
+$("pPhone").addEventListener("input",()=>{if(selectedRegistrationPatientId){selectedRegistrationPatientId="";["pName","pDob","pAge","pGender","pAddress","pWeight","pBP","pDiabetes","pHistory"].forEach(id=>setPatientField(id,""));}$("pPhoneHint").textContent="Enter a mobile number to find existing patients. Select a match or choose Add New Patient with Same Number.";renderRegistrationPhoneMatches();});
+$("pPhone").addEventListener("focus",()=>renderRegistrationPhoneMatches());
 [["readingPatientPicker","readingPatient","readingPatientOptions"],["mPatientPicker","mPatient","mPatientOptions"],["aPatientPicker","aPatient","aPatientOptions"],["historyPatientPicker","historyPatient","historyPatientOptions"]].forEach(([pickerId,selectId,listId])=>{
  const picker=$(pickerId),list=$(listId);if(!picker)return;
  picker.addEventListener('input',()=>renderPatientSuggestions(pickerId,selectId,listId));
@@ -522,15 +591,50 @@ async function nextQueueNumber(day,doctor,excludeAppointmentId=null){
 }
 function localDateISO(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;} $("pAppointmentDate").value=localDateISO(); $("aDate").value=localDateISO(); $("appointmentForm").addEventListener("reset",()=>setTimeout(()=>$("aDate").value=localDateISO(),0)); $("pDob").addEventListener("input",()=>{$("pAge").value=calculateAgeFromDob($("pDob").value);});
 $("pDob").addEventListener("change",()=>{$("pAge").value=calculateAgeFromDob($("pDob").value);});
-$("patientForm").onsubmit=async e=>{e.preventDefault();clear("patientNotice");const u=auth.currentUser;if(!u||!profile)return msg("patientNotice","Please log in first.");const name=$("pName").value.trim(),phone=$("pPhone").value.trim(),doctor=$("pDoctor").value,appointmentDate=$("pAppointmentDate").value;if(!name||!phone)return msg("patientNotice","Name and mobile are required.");if(!doctor)return msg("patientNotice","Please select a doctor / clinician.");if(!appointmentDate)return msg("patientNotice","Please select the appointment date.");
+$("patientForm").onsubmit=async e=>{
+ e.preventDefault();clear("patientNotice");
+ const u=auth.currentUser;if(!u||!profile)return msg("patientNotice","Please log in first.");
+ const name=$("pName").value.trim(),phone=$("pPhone").value.trim(),doctor=$("pDoctor").value,appointmentDate=$("pAppointmentDate").value;
+ if(!name||!phone)return msg("patientNotice","Name and mobile are required.");
+ if(!doctor)return msg("patientNotice","Please select a doctor / clinician.");
+ if(!appointmentDate)return msg("patientNotice","Please select the appointment date.");
  const normalizedPhone=phone.replace(/\D/g,"");
- const phoneMatches=patients.filter(p=>String(p.phone||"").replace(/\D/g,"")===normalizedPhone && normalizedPhone.length===10);
- if(phoneMatches.length){
-   const matchSummary=phoneMatches.slice(0,5).map(p=>`${p.name||"Unnamed"} (${p.patientCode||p.id})`).join("\n");
-   const proceed=confirm(`⚠️ This mobile number is already registered for ${phoneMatches.length} patient record(s):\n\n${matchSummary}\n\nTo avoid duplicate records, cancel and open the existing patient if this is the same person.\n\nChoose OK only if this is a different person who intentionally shares the same mobile number.`);
-   if(!proceed)return msg("patientNotice","Possible duplicate blocked. Search for the existing patient by mobile number and review the match before registering again.");
- }
- const code="SPC-"+Date.now().toString().slice(-8);const enteredAge=$("pAge").value.trim();const dobValue=$("pDob").value||approximateDobFromAge(enteredAge)||"";const calculatedAge=calculateAgeFromDob(dobValue);const ageValue=enteredAge!==""&&Number.isInteger(Number(enteredAge))&&Number(enteredAge)>=0&&Number(enteredAge)<=125?Number(enteredAge):(calculatedAge!==""?calculatedAge:"");const patientData={name,phone,dob:dobValue,age:ageValue,gender:$("pGender").value,address:$("pAddress").value.trim(),weight:$("pWeight").value?Number($("pWeight").value):"",bloodPressure:$("pBP").value.trim(),doctor,diabetes:$("pDiabetes").value,history:$("pHistory").value.trim(),patientCode:code,createdAt:serverTimestamp(),createdBy:u.uid};try{const saved=await addDoc(collection(db,"patients"),patientData);lastSavedPatient={...patientData,id:saved.id,createdAtLocal:new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"})};try{const feeStatus=$("pFeeStatus").value;const daySnap=await getDocs(collection(db,"appointments"));const paid=daySnap.docs.map(ds=>ds.data()).filter(d=>String(d.appointmentDay||String(d.appointmentDate||"").slice(0,10))===appointmentDate&&String(d.doctor||"").trim().toLowerCase()===doctor.trim().toLowerCase()&&String(d.feeStatus||((d.queueNumber!=null)?"Paid":"Pending"))==="Paid");const queueNumber=feeStatus==="Paid"?await nextQueueNumber(appointmentDate,doctor):null;await addDoc(collection(db,"appointments"),{patientId:saved.id,appointmentDate,appointmentDay:appointmentDate,queueNumber,feeStatus,paidAt:feeStatus==="Paid"?serverTimestamp():null,doctor,reason:"",createdAt:serverTimestamp(),createdBy:u.uid});msg("patientNotice",feeStatus==="Paid"?"Patient saved and appointment booked. Fees Paid — Queue No. "+queueNumber+" — "+doctor+".":"Patient saved and appointment booked as Fees Pending. Queue number will be assigned after fees are paid.","ok");}catch(apptErr){msg("patientNotice","Patient saved, but appointment could not be booked: "+friendly(apptErr)+". Please book it from the Appointment section.","err");}$("printPatientPrescription").hidden=false;$("printPatientPrescription").style.display="inline-flex";$("printPatientPrescription").disabled=false;$("patientForm").reset();$("pAppointmentDate").value=localDateISO();$("printPatientPrescription").hidden=false;$("printPatientPrescription").style.display="inline-flex";$("printPatientPrescription").disabled=false;await loadPatients();await loadAppointments()}catch(x){msg("patientNotice","Patient was not saved: "+friendly(x)+" Check the published rules and field names.")}};
+ if(!/^\d{10}$/.test(normalizedPhone))return msg("patientNotice","Mobile number must contain exactly 10 digits.");
+ let patient=null,patientId=selectedRegistrationPatientId;
+ try{
+  if(patientId){
+   patient=patients.find(p=>p.id===patientId);
+   if(!patient)throw new Error("The selected existing patient is no longer in the loaded list. Refresh patients and select again.");
+   if(String(patient.phone||"").replace(/\D/g,"").slice(-10)!==normalizedPhone)throw new Error("Selected patient's mobile number does not match. Please search and select the patient again.");
+  }else{
+   const phoneMatches=patients.filter(p=>String(p.phone||"").replace(/\D/g,"").slice(-10)===normalizedPhone);
+   if(phoneMatches.length){
+    const matchSummary=phoneMatches.slice(0,8).map(p=>`${p.name||"Unnamed"} (${p.patientCode||p.id})`).join("\n");
+    const proceed=confirm(`This mobile number is already linked to ${phoneMatches.length} patient record(s):\n\n${matchSummary}\n\nIf this is an existing patient, cancel and select their name from the mobile search.\n\nChoose OK only to register a different person who shares this number.`);
+    if(!proceed)return msg("patientNotice","Registration cancelled. Select an existing patient or choose Add New Patient with Same Number.");
+   }
+   const code="SPC-"+Date.now().toString().slice(-8),enteredAge=$("pAge").value.trim();
+   const dobValue=$("pDob").value||approximateDobFromAge(enteredAge)||"",calculatedAge=calculateAgeFromDob(dobValue);
+   const ageValue=enteredAge!==""&&Number.isInteger(Number(enteredAge))&&Number(enteredAge)>=0&&Number(enteredAge)<=125?Number(enteredAge):(calculatedAge!==""?calculatedAge:"");
+   const patientData={name,phone,dob:dobValue,age:ageValue,gender:$("pGender").value,address:$("pAddress").value.trim(),weight:$("pWeight").value?Number($("pWeight").value):"",bloodPressure:$("pBP").value.trim(),doctor,diabetes:$("pDiabetes").value,history:$("pHistory").value.trim(),patientCode:code,createdAt:serverTimestamp(),createdBy:u.uid};
+   const saved=await addDoc(collection(db,"patients"),patientData);
+   patient={...patientData,id:saved.id};patientId=saved.id;
+   lastSavedPatient={...patientData,id:saved.id,createdAtLocal:new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"})};
+  }
+  const feeStatus=$("pFeeStatus").value;
+  const queueNumber=feeStatus==="Paid"?await nextQueueNumber(appointmentDate,doctor):null;
+  await addDoc(collection(db,"appointments"),{patientId,appointmentDate,appointmentDay:appointmentDate,queueNumber,feeStatus,paidAt:feeStatus==="Paid"?serverTimestamp():null,doctor,reason:"",createdAt:serverTimestamp(),createdBy:u.uid});
+  if(selectedRegistrationPatientId){
+   lastSavedPatient={...patient};
+   msg("patientNotice","Appointment booked for existing patient "+(patient.name||"")+" · SPC ID "+(patient.patientCode||patient.id)+". Existing patient record was reused; no duplicate patient was created."+(feeStatus==="Paid"?" Fees Paid — Queue No. "+queueNumber+".":" Fees Pending."),"ok");
+  }else{
+   msg("patientNotice",feeStatus==="Paid"?"Patient saved and appointment booked. Fees Paid — Queue No. "+queueNumber+" — "+doctor+".":"Patient saved and appointment booked as Fees Pending. Queue number will be assigned after fees are paid.","ok");
+  }
+  $("printPatientPrescription").hidden=false;$("printPatientPrescription").style.display="inline-flex";$("printPatientPrescription").disabled=false;
+  $("patientForm").reset();selectedRegistrationPatientId="";$("pPhoneOptions").hidden=true;$("pPhoneHint").textContent="Enter a mobile number to find existing patients. You can also register another family member with the same number.";
+  $("pAppointmentDate").value=localDateISO();await loadPatients();await loadAppointments();
+ }catch(x){msg("patientNotice","Could not complete patient/appointment save: "+friendly(x)+". If a patient record was saved but appointment failed, book the appointment from the Appointment section.","err");}
+};
 $("readingForm").onsubmit=async e=>{e.preventDefault();clear("readingNotice");const u=auth.currentUser;if(!u||!profile)return msg("readingNotice","Please log in first.");const patientId=$("readingPatient").value;if(!patients.some(p=>p.id===patientId))return msg("readingNotice","Select a valid patient.");try{const type=$("rType").value,value=$("rValue").value.trim(),date=$("rDate").value;const duplicate=await findDuplicate("readings",patientId,d=>d.type===type&&d.value===value&&d.date===date);if(duplicate&&!confirm("इसी मरीज के लिए यही Reading Type, Value और Date पहले से मौजूद है। फिर भी सेव करें?"))return;await addDoc(collection(db,"readings"),{patientId,type,value,date,notes:$("rNotes").value.trim(),createdAt:serverTimestamp(),createdBy:u.uid});msg("readingNotice","Reading saved.","ok");$("readingForm").reset()}catch(x){msg("readingNotice","Reading not saved: "+friendly(x))}};
 $("medicineForm").onsubmit=async e=>{e.preventDefault();clear("medicineNotice");const u=auth.currentUser;if(!u||!profile)return msg("medicineNotice","Please log in first.");const patientId=$("mPatient").value;if(!patients.some(p=>p.id===patientId))return msg("medicineNotice","Select a valid patient.");const medicineName=$("mName").value.trim();if(!medicineName)return msg("medicineNotice","Medicine name is required.");const startDate=$("mStart").value,endDate=$("mEnd").value;if(startDate&&endDate&&endDate<startDate)return msg("medicineNotice","End date cannot be earlier than start date.");try{const dose=$("mDose").value.trim();const duplicate=await findDuplicate("medicines",patientId,d=>String(d.medicineName||"").toLowerCase()===medicineName.toLowerCase()&&String(d.dose||"").toLowerCase()===dose.toLowerCase()&&String(d.startDate||"")===startDate);if(duplicate&&!confirm("इसी मरीज के लिए यही Medicine, Dose और Start Date पहले से मौजूद है। फिर भी सेव करें?"))return;await addDoc(collection(db,"medicines"),{patientId,medicineName,dose,startDate,endDate,notes:$("mNotes").value.trim(),createdAt:serverTimestamp(),createdBy:u.uid});msg("medicineNotice","Medicine record saved.","ok");$("medicineForm").reset();await loadMedicines()}catch(x){msg("medicineNotice","Medicine record not saved: "+friendly(x))}};
 let lastSavedAppointmentForPrint=null;
