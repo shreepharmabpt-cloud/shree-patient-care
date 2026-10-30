@@ -312,7 +312,7 @@ html body #patientRegistrationNav:hover, html body #patientRegistrationNav:focus
 <script type="module">
 import {initializeApp,getApps} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import {getFirestore,collection,addDoc,getDocs,doc,getDoc,setDoc,serverTimestamp,query,orderBy,limit,updateDoc,deleteDoc,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {getFirestore,collection,addDoc,getDocs,doc,getDoc,setDoc,serverTimestamp,query,where,orderBy,limit,updateDoc,deleteDoc,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import {getStorage,ref as storageRef,uploadBytes,getDownloadURL,deleteObject} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 const firebaseConfig={apiKey:"AIzaSyCdJMcd1p_B_TD0lyAR1ZVvWpfUgn2FN50",authDomain:"shree-patient-care.firebaseapp.com",projectId:"shree-patient-care",storageBucket:"shree-patient-care.firebasestorage.app",messagingSenderId:"546618091366",appId:"1:546618091366:web:1de449aef618e3e0e10aa7",measurementId:"G-LKW9ECKLXN"};
 const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),storage=getStorage(app),$=id=>document.getElementById(id);let profile=null,patients=[],lastSavedPatient=null,clinicDoctors=[]; const DEFAULT_DOCTORS=[{name:"Dr. Satyanarayan Behera",speciality:"General Surgery"},{name:"Dr. Krushnasis Dash",speciality:"Medicine & Diabetes"},{name:"Dr. Alok Kumar Meher",speciality:"Paediatrics"},{name:"Dr. Subhalaxmi Mahapatra",speciality:"Obstetrics & Gynaecology"},{name:"Dr. Chittaranjan Barik",speciality:"Neurology"}];
@@ -565,8 +565,8 @@ async function showVitalsBeforePrint(patient, preferredAppointment=null){
  let suggestedAppointment=preferredAppointment;
  try{
   if(!suggestedAppointment){
-   const snap=await getDocs(collection(db,"appointments"));
-   const rows=snap.docs.map(x=>({id:x.id,...x.data()})).filter(a=>a.patientId===patient.id);
+   const snap=await getDocs(query(collection(db,"appointments"),where("patientId","==",patient.id),limit(100)));
+   const rows=snap.docs.map(x=>({id:x.id,...x.data()}));
    const today=localDateISO();
    rows.sort((a,b)=>{
     const da=String(a.appointmentDay||String(a.appointmentDate||"").slice(0,10));
@@ -641,7 +641,7 @@ async function showVitalsBeforePrint(patient, preferredAppointment=null){
  await updateDoc(onlineRef,changes);
  v.queueNumber=queueNumber;v.selectedAppointmentId=onlineApptId;v.feeStatus=feeStatus;v.doctor=selectedDoctor;v.queueAppointmentDate=selectedDate;
  overlay.remove();await loadAppointments();printPrescriptionForPatient(v);return;
-}const snap=await getDocs(collection(db,'appointments'));const all=snap.docs.map(x=>({id:x.id,...x.data()}));const sameDay=all.filter(a=>String(a.appointmentDay||String(a.appointmentDate||'').slice(0,10))===selectedDate&&String(a.doctor||'').trim().toLowerCase()===String(v.doctor||'').trim().toLowerCase());let existing=(preferredAppointment?.id?sameDay.find(a=>a.id===preferredAppointment.id):null)||sameDay.find(a=>a.patientId===v.id&&String(a.feeStatus||((a.queueNumber!=null)?'Paid':'Pending'))===feeStatus);if(existing){const existingFeeStatus=String(existing.feeStatus||((existing.queueNumber!=null)?'Paid':'Pending'));const changes={};if(existingFeeStatus!==feeStatus){changes.feeStatus=feeStatus;if(feeStatus==='Paid'){changes.paidAt=serverTimestamp();changes.queueNumber=await nextQueueNumber(selectedDate,v.doctor,existing.id);}else{changes.queueNumber=null;changes.paidAt=null;}await updateDoc(doc(db,'appointments',existing.id),changes);}v.selectedAppointmentId=existing.id;v.queueNumber=feeStatus==='Paid'?Number(changes.queueNumber??existing.queueNumber):null;}else{let queueNumber=null;if(feeStatus==='Paid')queueNumber=await nextQueueNumber(selectedDate,v.doctor);const appt=await addDoc(collection(db,'appointments'),{patientId:v.id,appointmentDate:selectedDate,appointmentDay:selectedDate,queueNumber,feeStatus,paidAt:feeStatus==='Paid'?serverTimestamp():null,doctor:v.doctor,reason:'',createdAt:serverTimestamp(),createdBy:u.uid});v.selectedAppointmentId=appt.id;v.queueNumber=queueNumber;}if(feeStatus==='Pending')v.queueNumber=null;overlay.remove();printPrescriptionForPatient(v);await loadAppointments();}catch(err){console.error('Appointment creation/queue lookup failed',err);alert('Appointment could not be saved, so prescription was not opened.\n\nFirebase error: '+(err.code||'unknown')+'\nDetails: '+(err.message||String(err))+'\n\nPlease share this exact error if the problem continues.');}};
+}const [daySnap,legacyDateSnap]=await Promise.all([getDocs(query(collection(db,'appointments'),where('appointmentDay','==',selectedDate),where('doctor','==',v.doctor),limit(200))),getDocs(query(collection(db,'appointments'),where('appointmentDate','==',selectedDate),where('doctor','==',v.doctor),limit(200)))]);const sameDayDocs=new Map();[...daySnap.docs,...legacyDateSnap.docs].forEach(x=>sameDayDocs.set(x.id,x));const sameDay=[...sameDayDocs.values()].map(x=>({id:x.id,...x.data()})).filter(a=>String(a.appointmentDay||String(a.appointmentDate||'').slice(0,10))===selectedDate&&String(a.doctor||'').trim().toLowerCase()===String(v.doctor||'').trim().toLowerCase());let existing=(preferredAppointment?.id?sameDay.find(a=>a.id===preferredAppointment.id):null)||sameDay.find(a=>a.patientId===v.id&&String(a.feeStatus||((a.queueNumber!=null)?'Paid':'Pending'))===feeStatus);if(existing){const existingFeeStatus=String(existing.feeStatus||((existing.queueNumber!=null)?'Paid':'Pending'));const changes={};if(existingFeeStatus!==feeStatus){changes.feeStatus=feeStatus;if(feeStatus==='Paid'){changes.paidAt=serverTimestamp();changes.queueNumber=await nextQueueNumber(selectedDate,v.doctor,existing.id);}else{changes.queueNumber=null;changes.paidAt=null;}await updateDoc(doc(db,'appointments',existing.id),changes);}v.selectedAppointmentId=existing.id;v.queueNumber=feeStatus==='Paid'?Number(changes.queueNumber??existing.queueNumber):null;}else{let queueNumber=null;if(feeStatus==='Paid')queueNumber=await nextQueueNumber(selectedDate,v.doctor);const appt=await addDoc(collection(db,'appointments'),{patientId:v.id,appointmentDate:selectedDate,appointmentDay:selectedDate,queueNumber,feeStatus,paidAt:feeStatus==='Paid'?serverTimestamp():null,doctor:v.doctor,reason:'',createdAt:serverTimestamp(),createdBy:u.uid});v.selectedAppointmentId=appt.id;v.queueNumber=queueNumber;}if(feeStatus==='Pending')v.queueNumber=null;overlay.remove();printPrescriptionForPatient(v);await loadAppointments();}catch(err){console.error('Appointment creation/queue lookup failed',err);alert('Appointment could not be saved, so prescription was not opened.\n\nFirebase error: '+(err.code||'unknown')+'\nDetails: '+(err.message||String(err))+'\n\nPlease share this exact error if the problem continues.');}};
  const dateInput=overlay.querySelector("#vpAppointmentDate");if(suggestedAppointment){dateInput.value=String(suggestedAppointment.appointmentDay||String(suggestedAppointment.appointmentDate||"").slice(0,10)||localDateISO()).slice(0,10);}else if(patient.queueAppointmentDate)dateInput.value=patient.queueAppointmentDate;const diabetesSelect=overlay.querySelector("#vpDiabetes");
  if(patient.diabetes && [...diabetesSelect.options].some(o=>o.value===patient.diabetes)) diabetesSelect.value=patient.diabetes;
  const feeSelect=overlay.querySelector("#vpFeeStatus");feeSelect.value=(suggestedAppointment?.feeStatus||((suggestedAppointment?.queueNumber!=null)?"Paid":"Pending"));const doctorSelect=overlay.querySelector("#vpDoctor");const hint=document.createElement("div");hint.style.cssText="font-size:11px;color:#60717d;margin-top:4px";doctorSelect.insertAdjacentElement("afterend",hint);const refreshHint=()=>hint.textContent=doctorSpecialty(doctorSelect.value)||"";doctorSelect.addEventListener("change",refreshHint);
@@ -704,9 +704,13 @@ $("pAge").addEventListener("input",()=>{const dob=approximateDobFromAge($("pAge"
 async function nextQueueNumber(day,doctor,excludeAppointmentId=null){
  const normalizedDoctor=String(doctor||"").trim().toLowerCase();
  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(day||""))||!normalizedDoctor)throw new Error("A valid appointment date and doctor are required to assign a queue number.");
- // Read legacy appointments once so the counter can safely start above numbers already in use.
- const snap=await getDocs(collection(db,"appointments"));
- const legacyMax=Math.max(0,...snap.docs.filter(x=>x.id!==excludeAppointmentId).map(x=>{const a=x.data();const aDay=String(a.appointmentDay||String(a.appointmentDate||"").slice(0,10)).slice(0,10);const aDoctor=String(a.doctor||"").trim().toLowerCase();const paid=String(a.feeStatus||((a.queueNumber!=null)?"Paid":"Pending"))==="Paid";return aDay===day&&aDoctor===normalizedDoctor&&paid?Number(a.queueNumber)||0:0;}));
+ // Read only this doctor/date's appointments (including legacy records without appointmentDay).
+ const [daySnap,legacyDateSnap]=await Promise.all([
+  getDocs(query(collection(db,"appointments"),where("appointmentDay","==",day),limit(1000))),
+  getDocs(query(collection(db,"appointments"),where("appointmentDate","==",day),limit(1000)))
+ ]);
+ const queueDocs=new Map();[...daySnap.docs,...legacyDateSnap.docs].forEach(x=>queueDocs.set(x.id,x));
+ const legacyMax=Math.max(0,...[...queueDocs.values()].filter(x=>x.id!==excludeAppointmentId).map(x=>{const a=x.data();const aDay=String(a.appointmentDay||String(a.appointmentDate||"").slice(0,10)).slice(0,10);const aDoctor=String(a.doctor||"").trim().toLowerCase();const paid=String(a.feeStatus||((a.queueNumber!=null)?"Paid":"Pending"))==="Paid";return aDay===day&&aDoctor===normalizedDoctor&&paid?Number(a.queueNumber)||0:0;}));
  const counterId=day+"__"+encodeURIComponent(normalizedDoctor);
  return await runTransaction(db,async tx=>{const ref=doc(db,"queueCounters",counterId);const counter=await tx.get(ref);const current=counter.exists()?Number(counter.data().lastNumber)||0:0;const next=Math.max(current,legacyMax)+1;tx.set(ref,{day,doctor:normalizedDoctor,lastNumber:next,updatedAt:serverTimestamp(),updatedBy:auth.currentUser?.uid||null});return next;});
 }
@@ -850,8 +854,8 @@ async function deleteRecord(collectionName,id){
  }catch(e){alert("Delete failed: "+friendly(e)+" Published Firestore Rules must allow admin delete.");}
 }
 async function findDuplicate(collectionName,patientId,matchFn){
- const snap=await getDocs(query(collection(db,collectionName),limit(500)));
- return snap.docs.some(s=>{const d=s.data();return d.patientId===patientId&&matchFn(d);});
+ const snap=await getDocs(query(collection(db,collectionName),where("patientId","==",patientId),limit(500)));
+ return snap.docs.some(s=>matchFn(s.data()));
 }
 function normalizeAppointmentDoc(s){
  const raw=s.data();
@@ -874,14 +878,16 @@ async function resolveOnlineBookingPatient(booking,onlineBookingId){
   const bookingGender=String(booking.gender||booking.sex||"").trim();
   if(!phone||phone.length!==10){alert("This online booking has no valid 10-digit mobile number. Update the booking details before printing.");return null;}
   if(!bookingName||!bookingGender){alert("Patient identity cannot be verified safely because the online booking is missing the patient name or gender. Please update the booking form/details first. Prescription was not opened.");return null;}
-  const patientSnap=await getDocs(collection(db,"patients"));
-  const allPatients=patientSnap.docs.map(x=>({id:x.id,...x.data()}));
   const linkedId=String(booking.patientId||"");
-  let patient=linkedId?allPatients.find(x=>x.id===linkedId):null;
+  let patient=null,allPatients=[];
+  // Prefer a direct document read when the booking already carries a patient ID.
+  if(linkedId){const linkedSnap=await getDoc(doc(db,"patients",linkedId));if(linkedSnap.exists())patient={id:linkedSnap.id,...linkedSnap.data()};}
   // Even a linked ID is accepted only if all three identity fields agree.
   const identityMatches=(x)=>normalizePatientPhone(x.phone)===phone&&normalizePatientName(x.name)===normalizePatientName(bookingName)&&normalizePatientGender(x.gender)===normalizePatientGender(bookingGender);
   if(patient&&!identityMatches(patient))patient=null;
   if(!patient){
+    const patientSnap=await getDocs(query(collection(db,"patients"),limit(1000)));
+    allPatients=patientSnap.docs.map(x=>({id:x.id,...x.data()}));
     const matches=allPatients.filter(identityMatches);
     if(matches.length===1)patient=matches[0];
     else if(matches.length>1){
@@ -893,7 +899,7 @@ async function resolveOnlineBookingPatient(booking,onlineBookingId){
       patient=matches[chosen-1];
     }
   }
-  if(patient){patients=allPatients;return patient;}
+  if(patient){if(allPatients.length)patients=allPatients;else if(!patients.some(x=>x.id===patient.id))patients=[...patients,patient];return patient;}
   const currentUser=auth.currentUser;
   if(!currentUser)throw new Error("Please log in as clinic staff/admin first.");
   let rawAge=booking.age;
@@ -995,8 +1001,7 @@ function renderMonthlyDashboard(rows){const root=$("dashboardMonthlyChart");root
 function renderDoctorDashboard(todayRows){const root=$("dashboardDoctorChart");root.replaceChildren();const known=dashboardDoctorNames();const counts=known.map(name=>({name,count:todayRows.filter(a=>String(a.doctor||"").trim().toLowerCase()===name.toLowerCase()).length}));const knownSet=new Set(known.map(n=>n.toLowerCase()));const others=new Map();todayRows.forEach(a=>{const raw=String(a.doctor||"").trim();if(raw&&raw.toLowerCase()!=="other / to be specified"&&!knownSet.has(raw.toLowerCase()))others.set(raw,(others.get(raw)||0)+1)});others.forEach((count,name)=>counts.push({name,count}));const unspecified=todayRows.filter(a=>!String(a.doctor||"").trim()||String(a.doctor||"").trim().toLowerCase()==="other / to be specified").length;if(unspecified)counts.push({name:"Other / To be specified",count:unspecified});if(!counts.length)counts.push({name:"No doctors configured",count:0});const max=Math.max(1,...counts.map(x=>x.count));counts.forEach(x=>{const row=document.createElement("div");row.className="dash-list-row";const name=document.createElement("div");name.className="dash-list-name";name.textContent=x.name;name.title=x.name;const track=document.createElement("div");track.className="track";const fill=document.createElement("div");fill.className="track-fill";fill.style.width=(x.count/max*100)+"%";track.appendChild(fill);const num=document.createElement("div");num.className="dash-list-count";num.textContent=x.count;row.append(name,track,num);root.appendChild(row)})}
 let dashboardRefreshInProgress=false;async function refreshDashboard(){if(dashboardRefreshInProgress)return;dashboardRefreshInProgress=true;const notice=$("dashboardNotice");if(notice){notice.textContent="Loading live statistics…";notice.className="status"}try{const [ps,as]=await Promise.all([getDocs(collection(db,"patients")),getDocs(query(collection(db,"appointments"),limit(1000)))]);const patientsAll=ps.docs.map(d=>({id:d.id,...d.data()})),appointmentsAll=combinedAppointmentDocs(as.docs).map(s=>({id:s.id,...s.data()}));const today=localDateKey(),now=new Date(),monthKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;const todayRows=appointmentsAll.filter(a=>safeDay(a)===today),monthRows=appointmentsAll.filter(a=>safeDay(a).startsWith(monthKey));const paid=a=>String(a.feeStatus||((a.queueNumber!=null)?"Paid":"Pending"))==="Paid";$("statDoctors").textContent=allDoctorRecords().length;$("statToday").textContent=todayRows.length.toLocaleString();$("statMonth").textContent=monthRows.length.toLocaleString();$("statPatients").textContent=patientsAll.length.toLocaleString();$("statPaid").textContent=appointmentsAll.filter(paid).length.toLocaleString();$("statPending").textContent=appointmentsAll.filter(a=>!paid(a)).length.toLocaleString();$("statTodayPaid").textContent=todayRows.filter(paid).length.toLocaleString();$("statAppointments").textContent=appointmentsAll.length.toLocaleString();$("dashboardDate").textContent=now.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"});renderMonthlyDashboard(appointmentsAll);renderDoctorDashboard(todayRows);$("dashboardUpdatedAt").textContent="Last refreshed at "+now.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});if(notice){notice.textContent="Dashboard statistics refreshed successfully.";notice.className="status ok"}}catch(e){if(notice){notice.textContent="Could not load dashboard statistics: "+friendly(e)+". Other app sections may still work.";notice.className="status err"}}finally{dashboardRefreshInProgress=false}}
 $("refreshDashboard").onclick=refreshDashboard;
-// Automatically refresh dashboard stats every 10 seconds, only while the signed-in user is viewing the dashboard.
-setInterval(()=>{if(profile && !$ ("dashboard").classList.contains("hidden") && !$ ("dashboardPanel").hidden){refreshDashboard()}},10000);
+// Dashboard statistics refresh only when the user clicks “Refresh stats”.
 
 $("appointmentDateFilter").addEventListener("change",renderFilteredAppointments);
 $("appointmentDoctorFilter").addEventListener("change",renderFilteredAppointments);if($("appointmentFeeFilter"))$("appointmentFeeFilter").addEventListener("change",renderFilteredAppointments);
@@ -1141,7 +1146,7 @@ async function loadPatientHistory(){
     if(canDeleteRecord()){const deleteBtn=document.createElement("button");deleteBtn.type="button";deleteBtn.className="danger";deleteBtn.textContent="🗑️ Delete Patient Profile";deleteBtn.onclick=()=>deletePatient(patient);profileActions.appendChild(deleteBtn)}
     if(profileActions.childElementCount)$("historyProfile").appendChild(profileActions);if($("historyProfile"))$("historyProfile").hidden=false;
 const specs=[["readings","historyReadings","historyReadingsList","reading"],["medicines","historyMedicines","historyMedicinesList","medicine"],["appointments","historyAppointments","historyAppointmentsList","appointment"]];let readings=[];
-for(const [collectionName,sectionId,target,kind] of specs){const snap=await getDocs(query(collection(db,collectionName),limit(300)));const rows=snap.docs.map(s=>({id:s.id,data:s.data()})).filter(x=>x.data.patientId===patientId);rows.sort((a,b)=>String((b.data.date||b.data.appointmentDate||b.data.createdAt?.seconds||b.data.startDate)||"").localeCompare(String((a.data.date||a.data.appointmentDate||a.data.createdAt?.seconds||a.data.startDate)||"")));appendHistoryRows(target,rows,kind,patient);$(sectionId).hidden=false;if(kind==="reading")readings=rows}
+for(const [collectionName,sectionId,target,kind] of specs){const snap=await getDocs(query(collection(db,collectionName),where("patientId","==",patientId),limit(300)));const rows=snap.docs.map(s=>({id:s.id,data:s.data()}));rows.sort((a,b)=>String((b.data.date||b.data.appointmentDate||b.data.createdAt?.seconds||b.data.startDate)||"").localeCompare(String((a.data.date||a.data.appointmentDate||a.data.createdAt?.seconds||a.data.startDate)||"")));appendHistoryRows(target,rows,kind,patient);$(sectionId).hidden=false;if(kind==="reading")readings=rows}
 drawHistoryChart(readings,$("historyChartType").value);if($("historyChartWrap"))$("historyChartWrap").hidden=false;if($("historyDocuments"))$("historyDocuments").hidden=false;await loadPatientDocuments(patientId);msg("historyNotice","Patient history loaded. Records shown are those returned by Firestore.","ok")}catch(e){msg("historyNotice","Could not load complete history: "+friendly(e)+" Check collection read permissions.")}}
 
 // Make patient names clickable throughout visible app content. The patient ID is resolved from the loaded patient cache.
@@ -1246,7 +1251,7 @@ function drawHistoryChart(readings,type){
  note.textContent=parsed.length+" numeric "+type+" reading(s), shown in date order. Green = normal, red = high/low, amber = review/context needed."+(type==="Blood Pressure"?" BP chart plots systolic values only; status uses systolic/diastolic when both are stored.":"");
 }
 
-$("loadHistory").onclick=loadPatientHistory;$("historyPatient").addEventListener("change",()=>{hideHistorySections();clear("historyNotice")});$("historyChartType").addEventListener("change",async()=>{const patientId=$("historyPatient").value;if(!patientId)return;try{const snap=await getDocs(query(collection(db,"readings"),limit(300)));const rows=snap.docs.map(s=>({id:s.id,data:s.data()})).filter(x=>x.data.patientId===patientId);drawHistoryChart(rows,$("historyChartType").value)}catch(e){msg("historyNotice","Could not refresh chart: "+friendly(e))}});
+$("loadHistory").onclick=loadPatientHistory;$("historyPatient").addEventListener("change",()=>{hideHistorySections();clear("historyNotice")});$("historyChartType").addEventListener("change",async()=>{const patientId=$("historyPatient").value;if(!patientId)return;try{const snap=await getDocs(query(collection(db,"readings"),where("patientId","==",patientId),limit(300)));const rows=snap.docs.map(s=>({id:s.id,data:s.data()}));drawHistoryChart(rows,$("historyChartType").value)}catch(e){msg("historyNotice","Could not refresh chart: "+friendly(e))}});
 function csvCell(value){let s=value==null?"":(typeof value==="object"&&typeof value.toDate==="function"?value.toDate().toISOString():String(value));if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'}
 function downloadCSV(filename,rows){if(!rows.length){msg("exportNotice","No records available to export.","info");return}const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];const csv=[keys.map(csvCell).join(","),...rows.map(r=>keys.map(k=>csvCell(r[k])).join(","))].join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);msg("exportNotice",filename+" downloaded.","ok")}
 async function exportCollection(name,filename){clear("exportNotice");if(!auth.currentUser||!profile)return msg("exportNotice","Please log in first.");try{const snap=await getDocs(collection(db,name));const rows=snap.docs.map(d=>({documentId:d.id,...d.data()}));downloadCSV(filename,rows)}catch(e){msg("exportNotice","Export failed: "+friendly(e))}}
